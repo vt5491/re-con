@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "2.8.80"
+  },
+  "dependencies": {
+    "babylonjs": "^4.1.0-beta.18",
+    "cannon": "^0.6.2",
+    "create-react-class": "15.6.3",
+    "earcut": "^2.2.1",
+    "oimo": "^1.0.9",
+    "react": "16.8.6",
+    "react-dom": "16.8.6"
+  }
+}
