@@ -13,11 +13,6 @@
 
 
 ;; user code
-; (defn render-loop []
-;       ; (println "render loop")
-;       ; (::controller/tick)
-;       (controller/tick)
-;       (.render main-scene/scene))
 ;; end user code
 
 (defn dev-setup []
@@ -34,22 +29,3 @@
   (dev-setup)
   (mount-root)
   (game/init))
-  ; (main-scene/init)
-  ; (controller/init vrHelper)
-  ; (controller/init main-scene)
-  ; (controller/init main-scene/scene vrHelper)
-  ; (controller/setup-controller-handlers main-scene/vrHelper)
-  ; (def left-controller (.-leftController main-scene/camera))
-  ; (println "init: left-controller=" left-controller)
-  ; (controller/controller-mesh-loaded-handler (.-leftController main-scene/camera))
-  ; (main-scene/init-panel-scene)
-  ; (cp-scene/init-panel-scene)
-  ; (main-scene/run-scene render-loop))
-  ; (main-scene/-main)
-  ; (.addEventListener
-  ;  js/window
-  ;  "DOMContentLoaded"
-  ;  (fn [] (.log js/console "DOMContentLoaded callback")
-  ;    (main-scene/-main))))
-
-  ; (draw-cube))

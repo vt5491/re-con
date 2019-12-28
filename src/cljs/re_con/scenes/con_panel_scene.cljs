@@ -2,11 +2,13 @@
   (:require
     [re-frame.core :as re-frame]
     [babylonjs]
+    [re-con.base :as base]
     [re-con.main-scene :as main-scene]))
 
 (def panel)
 (def panel2)
 (def panels (vector))
+(def assetsManager)
 ;; constants
 (def ^:const panel-width 2)
 (def ^:const panel-height 2)
@@ -36,37 +38,37 @@
   ; (set! (.-material (-> js/document (.getElementById panel-id))) mat)
   (set! (.-material (-> main-scene/scene (.getMeshByName panel-name))) mat))
 
-(defn toggle-panel-material [panel-name]
+(defn toggle-panel-material [db panel-name]
   (let [panel (-> main-scene/scene (.getMeshByName panel-name))
         mat-name (-> panel (.-material) (.-name))]
-    (cond (= mat-name "redMaterial") (set! (.-material panel) main-scene/imgMat)
-          (= mat-name "imgMat")(set! (.-material panel) main-scene/redMaterial))))
+    ; (cond (= mat-name "redMaterial") (set! (.-material panel) main-scene/imgMat))
+    (cond (= mat-name "redMaterial") (set! (.-material panel) (get (nth (db :board) (get base/panel-name-map (keyword panel-name))) :front-mat))
+          ; (= mat-name "imgMat")(set! (.-material panel) main-scene/redMaterial)
+          (= (subs mat-name 0 4) "mat-")(set! (.-material panel) main-scene/redMaterial))))
 
-; (defn init-panels []
-;   (println "init-panels: entered")
-;   (doseq [row-index (range 0 panel-array-width)]
-;     (do
-;       (println "row-index=" row-index)
-;       (let [row (vector)]
-;         ; (println "row=" row)
-;         (doseq [col-index (range 0 panel-array-height)]
-;           (let  [ panel-num (+ (* row-index panel-array-width) col-index)
-;                  panel (js/BABYLON.MeshBuilder.CreateBox. (str "panel-"  panel-num)
-;                                                           (js-obj "height" panel-height
-;                                                                   "width" panel-width
-;                                                                   "depth" panel-depth
-;                                                                   "material" main-scene/redMaterial
-;                                                                   main-scene/scene))]
-;             (set! (.-position panel) (js/BABYLON.Vector3.
-;                                       (+ (* col-index (+ panel-width panel-spacing)) panel-array-xc)
-;                                       (+ (* row-index (+ panel-height panel-spacing)) panel-array-yc)
-;                                       panel-array-zc))
-;             (set! (.-material panel) main-scene/redMaterial)
-;             (concat row col-index)
-;             ; (println "init-panels: row point 1=" row ",panel=" panel ",col-indx=" col-index)
-;             (conj row panel)))
-;         ; (println "init-panels: row point 2=" row)
-;         (conj panels row)))))
+(defn texture-loaded [db task index]
+    (println "cp-scene.texture-loaded: now setting texutre" task.texture " on index " index)
+    (set! (.-diffuseTexture (get (nth (db :board) index) :front-mat)) (js/BABYLON.Texture. task.texture)))
+    ; (set! (.-diffuseTexture (nth panels index))))
+
+(defn load-img-cb [index]
+  (fn [task]
+    (println "cp-scene.load-img-cb: now setting texutre" task.texture " on index " index)
+    (set! (.-diffuseTexture (nth panels index)))))
+
+(defn load-front-imgs [db]
+  (println "load-front-imgs: db=" db)
+  (println "load-front-imgs: board=" (db :board))
+  (set! assetsManager (js/BABYLON.AssetsManager. main-scene/scene))
+  (doseq [[i cell](map-indexed vector (db :board))]
+    (println "cell=" cell ",i=" i)
+    (println "cell.front-img=" (get cell :front-img))
+    ; (set! (.-onSuccess (.addTextureTask assetsManager "load-texture" (get cell :front-img))) (load-img-cb i)))
+    (let [task (.addTextureTask assetsManager "load-texture" (get cell :front-img))]
+      ; (set! task.onSuccess (load-img-cb i))
+      (set! task.onSuccess (re-frame/dispatch [:front-texture-loaded task i]))))
+  (println "now calling load")
+  (.load assetsManager))
 
 (defn init-panels [db]
   (println "init-panels: entered")
@@ -91,50 +93,16 @@
                                                                                                  main-scene/scene))]
                                              (set! (.-position pnl) (js/BABYLON.Vector3.
                                                                      (+ (* col-index (+ panel-width panel-spacing)) panel-array-xc)
-                                                                     (+ (* row-index (+ panel-height panel-spacing)) panel-array-yc)
+                                                                     (+ (* -1 row-index (+ panel-height panel-spacing)) panel-array-yc (* (- base/board-row-cnt 1) panel-height))
                                                                      panel-array-zc))
                                              (set! (.-material pnl) main-scene/redMaterial)
                                              (recur (dec col-index) (conj row pnl)))))))))))
 
 
-; (defn tmp []
-;   (println "tmp: entered")
-;   (doseq [row-index (range 0 4)]
-;     (println "row-index=" row-index)
-;     (loop [a (vector)]
-;       (conj a row-index)
-;       (println "a=" a))))
-;
-; (defn tmp2 []
-;   (loop [i 5
-;          a (vector)]
-;     (if (neg? i)
-;       a
-;       (do
-;         ; (conj a i)
-;         (println "tmp2: i=" i)
-;         (recur (dec i) (conj a i))))))
-
 
 (defn init-panel-scene[db]
-  ; (set! panel (js/BABYLON.MeshBuilder.CreateBox. "panel"
-  ;                                               (js-obj "height" 2 "width" 2 "depth" 0.1)
-  ;                                               main-scene/scene))
-  ; (set! (.-position panel) (js/BABYLON.Vector3. 10 2 2))
   (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
   (-> main-scene/vrHelper .-onSelectedMeshUnselected (.add mesh-unselected))
-  ; (-> main-scene/vrHelper .-onNewMeshSelected (.add (fn []
-  ;                                                     (println "init-panel-scene: new mesh selected")
-  ;                                                     (abc))))
   (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
-  ; (set! (.-position panel)(js/BABYLON.Vector3. 0 2 5))
-  ; (set! (.-material panel) main-scene/redMaterial)
-  ; (set! panel2 (js/BABYLON.MeshBuilder.CreateBox. "panel2"
-  ;                                               (js-obj "height" 2 "width" 2 "depth" 0.1)
-  ;                                               main-scene/scene))
-  ; (set! (.-position panel2)(js/BABYLON.Vector3. 2.5 2 5))
-  ; (set! (.-material panel2) main-scene/redMaterial)
-  ; (def xyz (tmp2))
-  ; (println "xyz=" xyz)
   (set! panels (init-panels db))
   (println "panels count=" (count panels)))

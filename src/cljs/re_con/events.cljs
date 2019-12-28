@@ -53,21 +53,13 @@
     ; (set! tmp (assoc db :trigger-pressed true))
     ; tmp))
 
+
 (re-frame/reg-event-db
  :trigger-handler
  (fn [db [_ stateObject]]
    (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-    (re-frame/dispatch [:trigger-change true])
-    (re-frame/dispatch [:trigger-change false]))))
-   ; db))
-
-(re-frame/reg-event-db
- :trigger-handler-2
- (fn [db [_ stateObject]]
-   (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-     ; (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
-
-     (cp-scene/toggle-panel-material (-> (get db :selected-mesh) (.-name))))
+     ; side effect
+     (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name))))
    (assoc db :trigger-pressed (.-pressed stateObject))))
 
 ; (re-frame/reg-event-db
@@ -127,5 +119,12 @@
  :load-front-imgs
  (fn [db [_]]
    ; side effect
-   (cell/load-front-imgs db)
+   (cp-scene/load-front-imgs db)
+   db))
+
+(re-frame/reg-event-db
+ :front-texture-loaded
+ (fn [db [_ task index]]
+   ;side effect
+   (cp-scene/texture-loaded db task index)
    db))
