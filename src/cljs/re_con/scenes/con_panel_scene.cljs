@@ -40,16 +40,21 @@
 
 (defn toggle-panel-material [db panel-name]
   (let [panel (-> main-scene/scene (.getMeshByName panel-name))
-        mat-name (-> panel (.-material) (.-name))]
+        mat-name (-> panel (.-material) (.-name))
+        cell (nth (db :board-cells) (get base/panel-name-map (keyword panel-name)))]
     ; (cond (= mat-name "redMaterial") (set! (.-material panel) main-scene/imgMat))
-    (cond (= mat-name "redMaterial") (set! (.-material panel) (get (nth (db :board) (get base/panel-name-map (keyword panel-name))) :front-mat))
-          ; (= mat-name "imgMat")(set! (.-material panel) main-scene/redMaterial)
-          (= (subs mat-name 0 4) "mat-")(set! (.-material panel) main-scene/redMaterial))))
+    (if (= (get cell :status) :active)
+      (cond (= mat-name "redMaterial") (set! (.-material panel) (get cell :front-mat))
+        ; (= mat-name "imgMat")(set! (.-material panel) main-scene/redMaterial)
+        (= (subs mat-name 0 10) "front-mat-")(set! (.-material panel) main-scene/redMaterial)))))
 
-(defn texture-loaded [db task index]
-    (println "cp-scene.texture-loaded: now setting texutre" task.texture " on index " index)
-    (set! (.-diffuseTexture (get (nth (db :board) index) :front-mat)) (js/BABYLON.Texture. task.texture)))
+(defn front-texture-loaded [db task index]
+    ; (println "cp-scene.front-texture-loaded: now setting texutre" task.texture " on index " index)
+    (set! (.-diffuseTexture (get (nth (db :board-cells) index) :front-mat)) (js/BABYLON.Texture. task.texture)))
     ; (set! (.-diffuseTexture (nth panels index))))
+
+(defn rebus-texture-loaded [db task index]
+    (set! (.-diffuseTexture (get (nth (db :board-cells) index) :rebus-mat)) (js/BABYLON.Texture. task.texture)))
 
 (defn load-img-cb [index]
   (fn [task]
@@ -57,12 +62,12 @@
     (set! (.-diffuseTexture (nth panels index)))))
 
 (defn load-front-imgs [db]
-  (println "load-front-imgs: db=" db)
-  (println "load-front-imgs: board=" (db :board))
-  (set! assetsManager (js/BABYLON.AssetsManager. main-scene/scene))
-  (doseq [[i cell](map-indexed vector (db :board))]
-    (println "cell=" cell ",i=" i)
-    (println "cell.front-img=" (get cell :front-img))
+  ; (println "load-front-imgs: db=" db)
+  ; (println "load-front-imgs: board=" (db :board-cells))
+  ; (set! assetsManager (js/BABYLON.AssetsManager. main-scene/scene))
+  (doseq [[i cell](map-indexed vector (db :board-cells))]
+    ; (println "cell=" cell ",i=" i)
+    ; (println "cell.front-img=" (get cell :front-img))
     ; (set! (.-onSuccess (.addTextureTask assetsManager "load-texture" (get cell :front-img))) (load-img-cb i)))
     (let [task (.addTextureTask assetsManager "load-texture" (get cell :front-img))]
       ; (set! task.onSuccess (load-img-cb i))
@@ -70,11 +75,17 @@
   (println "now calling load")
   (.load assetsManager))
 
+(defn load-rebus-imgs [db]
+  (doseq [[i cell](map-indexed vector (db :board-cells))]
+    (let [row (quot i base/board-row-cnt)
+          col (mod i base/board-row-cnt)
+          task (.addTextureTask assetsManager "load-texture" (str (get cell :rebus-img-stem) col "-" row ".png"))])))
+
 (defn init-panels [db]
   (println "init-panels: entered")
   (loop [row-index (- panel-array-height 1)
          rows []]
-      (println "row-index=" row-index)
+      ; (println "row-index=" row-index)
       (if (neg? row-index)
         rows
         (recur (dec row-index) (conj rows
@@ -100,9 +111,11 @@
 
 
 
-(defn init-panel-scene[db]
+(defn init-con-panel-scene[db]
   (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
   (-> main-scene/vrHelper .-onSelectedMeshUnselected (.add mesh-unselected))
   (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
+  (set! assetsManager (js/BABYLON.AssetsManager. main-scene/scene))
   (set! panels (init-panels db))
-  (println "panels count=" (count panels)))
+  (println "panels count=" (count panels))
+  (load-rebus-imgs db))

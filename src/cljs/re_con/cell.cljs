@@ -11,12 +11,15 @@
 
 (defn init-front-img [cell])
 
-(defn init-board [db row-cnt col-cnt default-img-map]
+(defn init-board-cells [db row-cnt col-cnt default-img-map]
   (println "init-board: entered")
   (dotimes [i (* row-cnt col-cnt)]
            ; (println "i=" i)
            (re-frame/dispatch [:add-cell { :front-img (default-img-map (keyword (str i)))
-                                          :front-mat (js/BABYLON.StandardMaterial. (str "mat-" i) main-scene/scene)}]))
+                                          :front-mat (js/BABYLON.StandardMaterial. (str "front-mat-" i) main-scene/scene)
+                                          :rebus-img-stem base/rebus-img-stem
+                                          :rebus-mat (js/BABYLON.StandardMaterial. (str "rebus-mat-" i main-scene/scene))
+                                          :status :active}]))
   (re-frame/dispatch [:load-front-imgs]))
 
   ;; now loop over the previously created cell vector, and load and set the fron image

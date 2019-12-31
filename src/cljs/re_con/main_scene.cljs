@@ -28,7 +28,6 @@
 
 (defn load-img-cb []
   (fn [task]
-    (println "hello matey 2")
     (set! (.-diffuseTexture imgMat) (js/BABYLON.Texture. task.texture))))
 
 (defn init []

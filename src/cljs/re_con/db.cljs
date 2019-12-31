@@ -5,7 +5,7 @@
 (def default-db
   {:name "re-frame"
    :trigger-pressed false
-   :board []})
+   :board-cells []})
 
 (re-frame/reg-sub
   :trigger-pressed
@@ -13,6 +13,6 @@
     (:trigger-pressed db)))
 
 (re-frame/reg-sub
- :board
+ :board-cells
  (fn [db _]
-   (:board db)))
+   (:board-cells db)))

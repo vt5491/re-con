@@ -7,6 +7,7 @@
    [re-con.main-scene :as main-scene]
    [re-con.scenes.con-panel-scene :as cp-scene]
    [re-con.cell :as cell]
+   [re-con.board :as board]
    [re-con.game :as game]))
 
 (def tmp)
@@ -54,12 +55,20 @@
     ; tmp))
 
 
+;; note: main trigger routine
 (re-frame/reg-event-db
  :trigger-handler
  (fn [db [_ stateObject]]
-   (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-     ; side effect
-     (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name))))
+   (let [board-status (db :board-status)
+         first-pick (get board-status :first-pick)
+         second-pick (get board-status :second-pick)]
+     (cond (or (= first-pick nil) (= second-pick nil))
+       (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
+         ; side effect
+         (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))
+         ; and fire a cell-picked event
+         (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
+
    (assoc db :trigger-pressed (.-pressed stateObject))))
 
 ; (re-frame/reg-event-db
@@ -93,7 +102,7 @@
  :init-con-panel-scene
  (fn [db [_]]
    ; side effect
-   (cp-scene/init-panel-scene db)
+   (cp-scene/init-con-panel-scene db)
    db))
 
 ;; cell related events
@@ -101,7 +110,7 @@
  :add-cell
  (fn [db [_ cell]]
    (println "add-cell.fn: entered")
-   (assoc db :board (conj (:board db) cell))))
+   (assoc db :board-cells (conj (:board-cells db) cell))))
 
 (re-frame/reg-event-db
  :cell-front-img
@@ -109,10 +118,10 @@
    db))
 
 (re-frame/reg-event-db
- :init-board
+ :init-board-cells
  (fn [db [_]]
    ; side effect
-   (cell/init-board db base/board-row-cnt base/board-col-cnt game/default-img-map)
+   (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
    db))
 
 (re-frame/reg-event-db
@@ -126,5 +135,25 @@
  :front-texture-loaded
  (fn [db [_ task index]]
    ;side effect
-   (cp-scene/texture-loaded db task index)
+   (cp-scene/front-texture-loaded db task index)
    db))
+
+(re-frame/reg-event-db
+ :rebus-texture-loaded
+ (fn [db [_ task index]]
+   ;side effect
+   (cp-scene/rebus-texture-loaded db task index)
+   db))
+
+;; board level
+(re-frame/reg-event-db
+ :init-board-status
+ (fn [db [_]]
+   ; side effect
+   (board/init-board-status db)))
+
+(re-frame/reg-event-db
+ :cell-picked
+ (fn [db [_ selected-mesh]]
+   ; side effect
+   (board/cell-picked db selected-mesh)))
