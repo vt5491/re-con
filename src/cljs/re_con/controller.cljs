@@ -73,7 +73,7 @@
   (re-frame/dispatch [:trigger-handler stateObject]))
 
 (defn grip-handler [stateObject]
-  (println "now in cljs side-trigger-handler")
+  ; (println "now in cljs side-trigger-handler")
   (if (.-pressed stateObject)
     ; (when (and scene.camera.leftController (not (isGripping))))
     ; (when (and (-> scene .-camera .-leftController) (not (isGripping))))

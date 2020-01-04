@@ -15,5 +15,6 @@
      [:button.change-color {:on-click #(re-frame/dispatch [:toggle-color])} "toggle-color"]
      [:br]
      [:button.print-db {:on-click #(re-frame/dispatch [:print-db])} "print-db"]
-     [:button.print-db {:on-click #(re-frame/dispatch [:info])} "info"]
+     [:button.print-db {:on-click #(re-frame/dispatch [:info])} "action"]
+     [:button.print-db {:on-click #(re-frame/dispatch [:action-2])} "action-2"]
      [:canvas {:style {:width 1024 :height 768 :border 5} :id "renderCanvas"}]]))

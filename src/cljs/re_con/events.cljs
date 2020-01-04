@@ -28,6 +28,19 @@
     db))
 
 
+;; cp-scene events
+(re-frame/reg-event-db
+ :abc
+ (fn [db [_ msg]]
+   (cp-scene/abc msg)
+   db))
+
+(re-frame/reg-event-db
+ :abc-2
+ (fn [db [_ msg]]
+   (cp-scene/abc-2 msg)
+   db))
+
 ;; usage:  (dispatch [:trigger-change true])
 (re-frame/reg-event-db
   :trigger-change
@@ -46,6 +59,13 @@
       ()))
 
 (re-frame/reg-event-db
+ :toggle-panel-material
+ (fn [db [_ _]]
+   (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
+   db))
+
+
+(re-frame/reg-event-db
   :toggle-trigger
   (fn [db _]
     (println "now in toggle-trigger, not of trigger-pressed=" (not (:trigger-pressed db)))
@@ -56,20 +76,45 @@
 
 
 ;; note: main trigger routine
-(re-frame/reg-event-db
+; (re-frame/reg-event-db
+;  :trigger-handler
+;  (fn [db [_ stateObject]]
+;    (let [board-status (db :board-status)
+;          first-pick (get board-status :first-pick)
+;          second-pick (get board-status :second-pick)]
+;      (cond (or (= first-pick nil) (= second-pick nil))
+;        (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
+;          ; side effect
+;          (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))
+;          ; and fire a cell-picked event
+;          (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
+;
+;    (assoc db :trigger-pressed (.-pressed stateObject))))
+
+(re-frame/reg-event-fx
  :trigger-handler
- (fn [db [_ stateObject]]
+ (fn [{:keys [db]} [_ stateObject]]
    (let [board-status (db :board-status)
          first-pick (get board-status :first-pick)
          second-pick (get board-status :second-pick)]
-     (cond (or (= first-pick nil) (= second-pick nil))
-       (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-         ; side effect
-         (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))
+     ; (cond (or (= first-pick nil) (= second-pick nil))
+     ;   (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
+     ;     ; side effect
+     ;     (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))))
          ; and fire a cell-picked event
-         (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
-
-   (assoc db :trigger-pressed (.-pressed stateObject))))
+         ; (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
+   ; {
+    (merge {:db (assoc db :trigger-pressed (.-pressed stateObject))}
+           (when-let [dummy-val (and (or (= first-pick nil) (= second-pick nil))
+                                     (.-pressed stateObject)
+                                     (not (:trigger-pressed db)))]
+             {:dispatch-n (list [:toggle-panel-material]
+                                [:cell-picked (db :selected-mesh)])})))))
+           ; (when-let [val (get {:a 7} :a)])
+           ; (when-let [val true]
+           ;   {:dispatch-n (list [:abc "mj"] [:abc-2 "angus young"])})))))
+    ; (if true
+    ;   (:dispatch-n (list [:abc "mj"] [:abc-2 "angus young"])))}))
 
 ; (re-frame/reg-event-db
 ;  :toggle-trigger
@@ -93,10 +138,22 @@
 (re-frame/reg-event-db
  :info
  (fn [db _]
-   (println "selected-mesh=" (if (contains? db :selected-mesh)
-                               (-> (get db :selected-mesh) .-name)
-                               nil))))
+   ;non-rf side effect
+    (cp-scene/show-full-rebus db)
+    db))
+  ; (println "selected-mesh=" (if (contains? db :selected-mesh)
+  ;                             (-> (get db :selected-mesh) .-name)
+  ;                             nil))))
 
+(re-frame/reg-event-db
+ :action-2
+ (fn [db _]
+   ;side effect
+   ; (println "rebus-mat 4=" (db :rebus-mat 4))
+   ; (println "board-cells-2=" (db :board-cells-2))
+   (cp-scene/show-full-rebus-2 db)
+   (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
+   db))
 ;; cp-scene related events
 (re-frame/reg-event-db
  :init-con-panel-scene
@@ -109,7 +166,7 @@
 (re-frame/reg-event-db
  :add-cell
  (fn [db [_ cell]]
-   (println "add-cell.fn: entered")
+   (println "add-cell.fn: entered, db.do-it=" (db/do-it))
    (assoc db :board-cells (conj (:board-cells db) cell))))
 
 (re-frame/reg-event-db
@@ -132,9 +189,16 @@
    db))
 
 (re-frame/reg-event-db
+ :load-rebus-imgs
+ (fn [db [_]]
+   ;non-rf side effect
+   (cp-scene/load-rebus-imgs db)
+   db))
+
+(re-frame/reg-event-db
  :front-texture-loaded
  (fn [db [_ task index]]
-   ;side effect
+   ;non-rf side effect
    (cp-scene/front-texture-loaded db task index)
    db))
 
