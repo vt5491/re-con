@@ -1,5 +1,7 @@
 ;; namespace for all things related to a cell slot in the concentration board.  The equivalent
 ;; of a "brick" in the game of breakout.
+;; Note: We refer to the logical entity as "cells" and the physical (babylon.js) entity as a "panel".
+;; If you want to do something with the scene/canvas layer, refer to con_panel_scene and alter the panel.
 ;; First created 2019-12-26.
 (ns re-con.cell
   (:require
@@ -29,3 +31,9 @@
   ;   (println "cell.front-img=" (get cell :front-img))))
 (defn get-rebus-mat [db index]
   (get (nth (db :board-cells) index) :rebus-mat))
+
+(defn reset-cell-picks [db])
+
+(defn match?
+  "Return true if cell front-img matches another" [cell-1 cell-2]
+  (= (cell-1 :front-img) (cell-2 :front-img)))

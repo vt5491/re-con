@@ -3,6 +3,7 @@
     [re-frame.core :as re-frame]
     [babylonjs]
     [re-con.base :as base]
+    [re-con.utils :as utils]
     [re-con.main-scene :as main-scene]))
 
 (def panel)
@@ -29,8 +30,8 @@
   (println "hello from abc-2, msg is " msg))
 
 (defn mesh-selected [mesh]
-  ; (println "con_panel_scene: the following mesh was selected" (.-name mesh))
-  (re-frame/dispatch [:mesh-selected mesh]))
+  (println "con_panel_scene: the following mesh was selected" (.-name mesh))
+  (re-frame/dispatch [(:mesh-selected mesh) (utils/get-panel-index mesh)]))
 
 (defn mesh-unselected [mesh]
   ; (println "con_panel_scene: the following mesh was unselected" (.-name mesh))
@@ -51,16 +52,22 @@
         ; (= mat-name "imgMat")(set! (.-material panel) main-scene/redMaterial)
         (= (subs mat-name 0 10) "front-mat-")(set! (.-material panel) main-scene/redMaterial)))))
 
+(defn show-panel-face [db panel-name]
+  (let [panel (-> main-scene/scene (.getMeshByName panel-name))
+        ; mat-name (-> panel (.-material) (.-name))
+        cell (nth (db :board-cells) (get base/panel-name-map (keyword panel-name)))]
+    (set! (.-material panel) (cell :front-mat))))
+
 (defn front-texture-loaded [db task index]
     ; (println "cp-scene.front-texture-loaded: now setting texutre" task.texture " on index " index)
     ; (set! (.-diffuseTexture (get (nth (db :board-cells) index) :front-mat)) (js/BABYLON.Texture. task.texture)))
     (let [cell (nth (db :board-cells) index)
           front-mat (get cell :front-mat)]
       ; (set! (.-diffuseTexture (get cell :front-mat)) (js/BABYLON.Texture. task.texture))
-      (set! (.-diffuseTexture front-mat) (js/BABYLON.Texture. task.texture))
+      (set! (.-diffuseTexture front-mat) (js/BABYLON.Texture. task.texture))))
       ; (println "cell=" cell)
       ; (println "cell :front-mat=" (get cell :front-mat))
-      (println "front-mat.name=" (-> front-mat  .-diffuseTexture .-name .-name))))
+      ; (println "front-mat.name=" (-> front-mat  .-diffuseTexture .-name .-name))))
       ; (js->clj (-> e js/JSON.stringify js/JSON.parse))
       ; (println "diffuseTexture on cell=" (.-diffuseTexture (js->clj (-> (get cell :front-mat) js/JSON.stringify js/JSON.parse))))
       ; (println "diffuseTexture on cell=" (goog.object/get (get cell :front-mat) "diffuseTexture"))))
@@ -166,3 +173,6 @@
 
 (defn show-full-rebus-2 [db]
   (show-panel-rebus 6 (get (nth (db :board-cells) 6) :rebus-mat)))
+
+(defn reset-panel [index]
+  (set! (.-material (-> main-scene/scene (.getMeshByName (str "panel-" index)))) main-scene/redMaterial))
