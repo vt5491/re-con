@@ -17,7 +17,9 @@
 (def playerStartPos)
 (def lastPlayerPos)
 (def lastGripVel)
-(def gripFactor 1.8)
+; Note: this is incredibly sensitive
+; (def gripFactor 1.8)
+(def gripFactor 1.9)
 (def lastGripTime)
 ; (def vrHelper)
 ; (def camera)
@@ -69,6 +71,7 @@
 
 (defn trigger-handler [stateObject]
   ;; simply promote to a re-frame method so we can have access to the db.
+  ; (println "babylon triggerStateChangeObservable fired")
   ; (re-frame/dispatch [:trigger-handler-2 stateObject])
   (re-frame/dispatch [:trigger-handler stateObject]))
 

@@ -6,6 +6,7 @@
    [re-con.views :as views]
    [re-con.config :as config]
    [babylonjs]
+   [babylonjs-gui]
    [re-con.controller :as controller]
    [re-con.game :as game]
    [re-con.main-scene :as main-scene]

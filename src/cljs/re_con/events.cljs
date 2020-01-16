@@ -45,8 +45,8 @@
 ;; non re-frame func
 (defn mat-change-check [new-state db]
   (if (and new-state (contains? db :selected-mesh))
-      (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
-      ()))
+      (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)))
+      ; ()))
 
 (re-frame/reg-event-db
  :toggle-panel-material
@@ -127,7 +127,9 @@
 (re-frame/reg-event-db
  :mesh-selected
  (fn [db [_ mesh mesh-index]]
-   (assoc (assoc db :selected-mesh mesh) :selected-mesh-index mesh-index)))
+   ; (println "events: :mesh-selected event")
+   (assoc db :selected-mesh mesh)))
+   ; (assoc (assoc db :selected-mesh mesh) :selected-mesh-index mesh-index)))
 
 (re-frame/reg-event-db
  :mesh-unselected
@@ -138,11 +140,11 @@
  :info
  (fn [db _]
    ;non-rf side effect
-    (cp-scene/show-full-rebus db)
-    db))
-  ; (println "selected-mesh=" (if (contains? db :selected-mesh)
-  ;                             (-> (get db :selected-mesh) .-name)
-  ;                             nil))))
+    ; (cp-scene/show-full-rebus db)
+   (println "selected-mesh=" (if (contains? db :selected-mesh)
+                               (-> (get db :selected-mesh) .-name)
+                               nil))
+   db))
 
 (re-frame/reg-event-db
  :action-2
@@ -150,8 +152,12 @@
    ;side effect
    ; (println "rebus-mat 4=" (db :rebus-mat 4))
    ; (println "board-cells-2=" (db :board-cells-2))
-   (cp-scene/show-full-rebus-2 db)
-   (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
+   ; (cp-scene/show-full-rebus-2 db)
+   ; (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
+   (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")]
+     (println "dynMat.texture=" (.-diffuseTexture dynMat))
+     (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
+
    db))
 
 ;;
@@ -202,6 +208,7 @@
  (fn [db [_]]
    ; side effect
    (cp-scene/init-con-panel-scene db)
+   ; (assoc db :selectedMesh nil)))
    db))
 
 (re-frame/reg-event-db

@@ -7,6 +7,7 @@
                  [thheller/shadow-cljs "2.8.80"]
                  [reagent "0.8.1"]
                  [re-frame "0.10.9"]]
+                 ; [babylonjs-gui "4.0.3"]]
 
   :plugins [
             [lein-shell "0.5.0"]]

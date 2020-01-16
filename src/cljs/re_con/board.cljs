@@ -2,19 +2,22 @@
   (:require
    [re-frame.core :as re-frame]
    [re-con.base :as base]
-   [re-con.cell :as cell]))
+   [re-con.utils :as utils]
+   [re-con.cell :as cell]
+   [re-con.main-scene :as main-scene]))
 
 (defn init-board-status [db]
   (assoc db :board-status {:first-pick-index nil, :first-pick nil, :second-pick-index nil, :second-pick nil}))
 
 (defn cell-picked "maintain :first-pick and :second-pick status" [db selected-mesh]
-  (println "board.cell-picked: entered: ")
+  (println "board.cell-picked: entered: mesh index=" (utils/get-panel-index selected-mesh))
+  ; (println "cell-picked: leftControllerGazeTrackerMesh=" (.-leftControllerGazeTrackerMesh main-scene/vrHelper))
   (let [first-pick (get-in db [:board-status :first-pick])
         second-pick (get-in db [:board-status :second-pick])]
     ; (println "top: first-pick=" first-pick, "db=" db)
     (if (not first-pick)
       (do
-        (println "first-pick path: first-pick=" (get-in db [:board-status :first-pick]) ", selected-mesh=" selected-mesh)
+        ; (println "first-pick path: first-pick=" (get-in db [:board-status :first-pick]) ", selected-mesh=" selected-mesh)
         ;; first pick
         ; (assoc-in db [:board-status :first-pick] selected-mesh)
         (assoc-in (assoc-in db [:board-status :first-pick] selected-mesh) [:board-status :second-pick] nil))
@@ -25,7 +28,9 @@
         (if (and (not second-pick) (not= (.-name first-pick) (.-name selected-mesh)))
           (do
             ;; second pick
-            (println "setting second-pick")
+            (println "setting second-pick, first-pick-index=" (utils/get-panel-index first-pick) ",second-pick-img=" (utils/get-front-panel-img db selected-mesh))
+            (when (= (utils/get-front-panel-img db first-pick) (utils/get-front-panel-img db selected-mesh))
+              (println "we have a match!"))
             ; (when cell/match)
             (assoc-in db [:board-status :second-pick] selected-mesh))
           (do

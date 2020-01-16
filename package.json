@@ -3,7 +3,8 @@
     "shadow-cljs": "2.8.80"
   },
   "dependencies": {
-    "babylonjs": "^4.1.0-beta.18",
+    "babylonjs": "^4.1.0-beta.20",
+    "babylonjs-gui": "^4.0.3",
     "cannon": "^0.6.2",
     "create-react-class": "15.6.3",
     "earcut": "^2.2.1",

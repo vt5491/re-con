@@ -22,6 +22,7 @@
 (def assetsManager)
 (def meshTask)
 (def textureTask)
+(def gui-3d-manager)
 
 
 (defn mesh-selected [])
@@ -61,9 +62,10 @@
   (.load assetsManager)
   (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 10 "height" 10) scene))
   (.enableTeleportation vrHelper (js-obj "floorMeshName" "ground"))
-  (.enableInteractions vrHelper)
+  ; (.enableInteractions vrHelper)
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-  (.setEnabled light1 true))
+  (.setEnabled light1 true)
+  (set! gui-3d-manager (js/BABYLON.GUI.GUI3DManager. scene)))
 
 (defn init-panel-scene[]
   (set! panel (js/BABYLON.MeshBuilder.CreateBox. "panel"
