@@ -12,7 +12,8 @@
 ;; We do maintain a rough analog of panels in re-frame/db @ board-game
 (def panels (vector))
 (def assetsManager)
-(def info-panel)
+; (def info-panel)
+(def status-panel)
 (def mesh-button)
 ;; constants
 (def ^:const panel-width 2)
@@ -179,15 +180,16 @@
         ; font "bold 344px monospace"
         ; box-text (js/BABYLON.GUI.TextBlock "box-text" "block hello")
         box-text (js/BABYLON.GUI.TextBlock. "box-text" "block hello")
-        status-pnl-mat (js/BABYLON.StandardMaterial. "status-panel-mat" scene)
-        stack (js/BABYLON.GUI.StackPanel.)]
+        status-pnl-mat (js/BABYLON.StandardMaterial. "status-panel-mat" scene)]
+        ; stack (js/BABYLON.GUI.StackPanel.)]
     (set! (.-position status-pnl) (js/BABYLON.Vector3. -1 (* panel-array-height 2.75) (+ panel-array-zc 1)))
     (set! (.-material status-pnl) status-pnl-mat)
     (set! (.-scaling status-pnl) (js/BABYLON.Vector3. 1 1 0.1))
     (set! (.-diffuseTexture status-pnl-mat) dyn-texture)
+    (set! status-panel status-pnl)
     ; (.drawText dyn-texture "hello" (/ status-pnl-pixel-width 2) (/ status-pnl-pixel-height 4) "200px green" "white" "blue" true true)
-    (.drawText dyn-texture "match" 300 200 "200px green" "white" "blue" true true)
-    (.addControl stack box-text)))
+    (.drawText dyn-texture "match" 300 200 "200px green" "white" "blue" true true)))
+    ; (.addControl stack box-text)))
     ; (.set! (.isVisible stack true))))
 
     ; var text1 = new BABYLON.GUI.TextBlock();
@@ -195,32 +197,32 @@
     ;   text1.color = "white";
     ;   text1.fontSize = 24;
     ;   button.content = text1));
-(defn init-3d-gui []
-  (set! info-panel (js/BABYLON.GUI.Button3D. "hello"))
-  (.addControl main-scene/gui-3d-manager info-panel)
-  (set! (-> info-panel .-position) (js/BABYLON.Vector3. 0 (* panel-array-height 2.75) (+ panel-array-zc 1)))
-  ; (set! (-> info-panel .-scaling .-x) 2)
-  ; (set! (-> info-panel .-scaling) (js/BABYLON.Vector3. 8 2 0.5))
-  (set! (-> info-panel .-scaling) (js/BABYLON.Vector3. 8 1 1))
-  (set! (-> info-panel .-contentScaleRatio) 4)
-  (let [mesh (js/BABYLON.MeshBuilder.CreateBox. "mesh-button" (js-obj "height" 2, "width" 4, "depth" 0.5))]
-    (set! (.-position mesh) (js/BABYLON.Vector3. -2 (* panel-array-height 2.75) (+ panel-array-zc 1))))
-    ; (set! (.-mesh info-panel) mesh))
-  (let [text (js/BABYLON.GUI.TextBlock.)]
-    (set! (.-text  text) "hello")
-    (set! (.-color text) "green")
-    ; (set! (.-fontSize text) 24)
-    (set! (.-fontSize text) 96)
-    (set! (.-content info-panel) text)))
-
-(defn init-3d-gui-2 []
-  (let [mesh (js/BABYLON.MeshBuilder.CreateBox. "mesh-button" (js-obj "height" 2, "width" 4, "depth" 0.5))]
-    (set! (.-position mesh) (js/BABYLON.Vector3. -2 (* panel-array-height 2.75) (+ panel-array-zc 1)))
-    (set! mesh-button (js/BABYLON.GUI.MeshButton3D. mesh))
-    (let [text (js/BABYLON.GUI.TextBlock.)]
-      (set! (.-text  text) "hello")
-      (set! (.-color text) "green")
-      (set! (.-content mesh) text))))
+; (defn init-3d-gui []
+;   (set! info-panel (js/BABYLON.GUI.Button3D. "hello"))
+;   (.addControl main-scene/gui-3d-manager info-panel)
+;   (set! (-> info-panel .-position) (js/BABYLON.Vector3. 0 (* panel-array-height 2.75) (+ panel-array-zc 1)))
+;   ; (set! (-> info-panel .-scaling .-x) 2)
+;   ; (set! (-> info-panel .-scaling) (js/BABYLON.Vector3. 8 2 0.5))
+;   (set! (-> info-panel .-scaling) (js/BABYLON.Vector3. 8 1 1))
+;   (set! (-> info-panel .-contentScaleRatio) 4)
+;   (let [mesh (js/BABYLON.MeshBuilder.CreateBox. "mesh-button" (js-obj "height" 2, "width" 4, "depth" 0.5))]
+;     (set! (.-position mesh) (js/BABYLON.Vector3. -2 (* panel-array-height 2.75) (+ panel-array-zc 1))))
+;     ; (set! (.-mesh info-panel) mesh))
+;   (let [text (js/BABYLON.GUI.TextBlock.)]
+;     (set! (.-text  text) "hello")
+;     (set! (.-color text) "green")
+;     ; (set! (.-fontSize text) 24)
+;     (set! (.-fontSize text) 96)
+;     (set! (.-content info-panel) text)))
+;
+; (defn init-3d-gui-2 []
+;   (let [mesh (js/BABYLON.MeshBuilder.CreateBox. "mesh-button" (js-obj "height" 2, "width" 4, "depth" 0.5))]
+;     (set! (.-position mesh) (js/BABYLON.Vector3. -2 (* panel-array-height 2.75) (+ panel-array-zc 1)))
+;     (set! mesh-button (js/BABYLON.GUI.MeshButton3D. mesh))
+;     (let [text (js/BABYLON.GUI.TextBlock.)]
+;       (set! (.-text  text) "hello")
+;       (set! (.-color text) "green")
+;       (set! (.-content mesh) text))))
 
 ;; read-only on db
 (defn init-con-panel-scene [db]
@@ -259,3 +261,6 @@
 
 (defn reset-panel [index]
   (set! (.-material (-> main-scene/scene (.getMeshByName (str "panel-" index)))) main-scene/redMaterial))
+
+(defn update-status-panel [msg]
+  (.drawText (-> status-panel .-material .-diffuseTexture) msg 100 200 "200px green" "white" "blue" true true))

@@ -154,10 +154,11 @@
    ; (println "board-cells-2=" (db :board-cells-2))
    ; (cp-scene/show-full-rebus-2 db)
    ; (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
-   (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")]
-     (println "dynMat.texture=" (.-diffuseTexture dynMat))
-     (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
-
+   ; (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")])
+   (cp-scene/update-status-panel "xyz")
+   ; (let [dynMat (.-material cp-scene/status-panel)]
+   ;   (println "dynMat.texture=" (.-diffuseTexture dynMat))
+   ;   (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
    db))
 
 ;;
@@ -260,3 +261,11 @@
  (fn [db [_ selected-mesh]]
    ; non-rf side effect
    (board/cell-picked db selected-mesh)))
+
+(re-frame/reg-event-db
+ :cell-matched
+ (fn [db [_ match-index]]
+   ; (assoc (nth (db :board-cells) match-index) :status :matched)
+   ; (assoc-in db [(nth (db :board-cells) match-index) :status] :matched)
+   (println "cell-matched: index=" match-index ", status=" (get-in db [:board-cells match-index :status]))
+   (assoc-in db [:board-cells match-index :status] :matched)))
