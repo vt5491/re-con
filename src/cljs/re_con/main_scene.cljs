@@ -47,7 +47,7 @@
   (println "abc=" (-> js/BABYLON.Quaternion (.FromEulerAngles 0 1 0)))
   ; (.rotationQuaternion camera (FromEulersAngles js/BABYLON.Quaternion 0 (/ js/Math.PI 2) 0))
   ;; in scruz, have to rotate camera 180 deg for some reason to get proper vr camera alignment with board.
-  (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
+  ; (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
   ; (js/setupLoaders scene)
   (set! redMaterial (js/BABYLON.StandardMaterial. "redMaterial" scene))
   (set! (.-diffuseColor redMaterial) (js/BABYLON.Color3. 1 0 0))

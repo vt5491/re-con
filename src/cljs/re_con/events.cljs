@@ -137,13 +137,14 @@
    (dissoc db :selected-mesh)))
 
 (re-frame/reg-event-db
- :info
+ :action
  (fn [db _]
    ;non-rf side effect
     ; (cp-scene/show-full-rebus db)
-   (println "selected-mesh=" (if (contains? db :selected-mesh)
-                               (-> (get db :selected-mesh) .-name)
-                               nil))
+   ; (println "selected-mesh=" (if (contains? db :selected-mesh)
+   ;                             (-> (get db :selected-mesh) .-name)
+   ;                             nil))
+   (println "kwd-to-int :5=" (utils/kwd-to-int :5))
    db))
 
 (re-frame/reg-event-db
@@ -155,7 +156,9 @@
    ; (cp-scene/show-full-rebus-2 db)
    ; (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
    ; (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")])
-   (cp-scene/update-status-panel "xyz")
+   ; (cp-scene/update-status-panel "xyz")
+   ; (println "result=" (utils/gen-img-map base/hotel-imgs))
+   (println "gen-front-img-map=" (utils/gen-front-img-map base/hotel-imgs))
    ; (let [dynMat (.-material cp-scene/status-panel)]
    ;   (println "dynMat.texture=" (.-diffuseTexture dynMat))
    ;   (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
@@ -179,7 +182,7 @@
 (re-frame/reg-event-db
  :load-front-imgs
  (fn [db [_]]
-   ; side effect
+   ; non-rf side effect
    (cp-scene/load-front-imgs db)
    db))
 
@@ -237,7 +240,8 @@
  :init-board-cells
  (fn [db [_]]
    ; non-rf side effect
-   (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
+   ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
+   (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
    db))
 
 (re-frame/reg-event-db
