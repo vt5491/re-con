@@ -8,6 +8,7 @@
     "cannon": "^0.6.2",
     "create-react-class": "15.6.3",
     "earcut": "^2.2.1",
+    "ecsy": "^0.2.2",
     "oimo": "^1.0.9",
     "react": "16.8.6",
     "react-dom": "16.8.6"

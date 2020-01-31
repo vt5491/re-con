@@ -226,8 +226,9 @@
 
 ;; read-only on db
 (defn init-con-panel-scene [db]
-  (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
-  (-> main-scene/vrHelper .-onSelectedMeshUnselected (.add mesh-unselected))
+  (when (not base/use-xr)
+    (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
+    (-> main-scene/vrHelper .-onSelectedMeshUnselected (.add mesh-unselected)))
   ; (-> main-scene/vrHelper .-onNewMeshPicked (.add mesh-picked))
   ; (-> main-scene/vrHelper .-onNewMeshSelected (.add mesh-selected))
   (set! assetsManager (js/BABYLON.AssetsManager. main-scene/scene))

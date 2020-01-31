@@ -1,0 +1,14 @@
+{:lein   true
+
+ :nrepl {:port 8777}
+
+ :builds {:app {:target          :browser
+                :output-dir      "resources/public/js/compiled"
+                :asset-path      "/js/compiled"
+                :modules         {:app {:init-fn re-con.core/init
+                                        :preloads [devtools.preload]}}
+                :devtools        {:http-root    "resources/public"
+                                  :http-port    8280}
+                ;;vt add
+                :js-options {:js-package-dirs ["node_modules" "resources/libs"]}}}}
+                ; :compiler-options {:output-feature-set :es7}}}}

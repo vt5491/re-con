@@ -33,10 +33,11 @@
   (set! lastGripVel (js/BABYLON.Vector3. 0 0 0))
   (set! lastPlayerPos (.-position camera)))
 
-(defn init [tgt-scene tgt-vr-helper]
+(defn init [tgt-scene tgt-vr-helper cam]
   (set! scene tgt-scene)
   (set! vr-helper tgt-vr-helper)
-  (set! camera (.-webVRCamera vr-helper))
+  ; (set! camera (.-webVRCamera vr-helper))
+  (set! camera cam)
   (init-vars))
 
 
@@ -98,3 +99,5 @@
 (defn setup-controller-handlers [vrHelper]
   (println "setup-controler-handlers: entered")
   (-> vrHelper (.-onControllerMeshLoaded) (.add controller-mesh-loaded-handler)))
+
+;; xr support

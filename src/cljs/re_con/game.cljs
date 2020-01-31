@@ -6,6 +6,7 @@
    [re-con.controller :as controller]
    [re-con.cell :as cell]
    [re-con.main-scene :as main-scene]
+   [re-con.test-scene-ecsy :as test-scene-ecsy]
    [re-con.scenes.con-panel-scene :as cp-scene]))
 
 ; (def default-img-map
@@ -19,15 +20,25 @@
 (defn render-loop []
       ; (println "render loop")
       ; (::controller/tick)
-      (controller/tick)
+      (controller/tick) ;;vt-x
       (.render main-scene/scene))
 
 (defn init []
-  (main-scene/init)
-  ; (cell/init-board base/con-row-cnt base/con-col-cnt default-img-map)
-  (re-frame/dispatch [:init-board-cells])
-  (re-frame/dispatch [:init-board-status])
-  (doseq [i (range 1 5)] (println "tmp"))
-  ; (cp-scene/init-panel-scene)
-  (re-frame/dispatch [:init-con-panel-scene])
-  (main-scene/run-scene render-loop))
+  (println "game.cljs: now in orig init")
+  (main-scene/init) ;;vt-x
+  ; (main-scene/init-basic)
+  ; (main-scene/init-basic-2))
+  ; ; (cell/init-board base/con-row-cnt base/con-col-cnt default-img-map)
+  (re-frame/dispatch [:init-board-cells]) ;;vt-x
+  (re-frame/dispatch [:init-board-status]) ;;vt-x
+  ; ; (doseq [i (range 1 5)] (println "tmp"))
+  ; ; (cp-scene/init-panel-scene)
+  (re-frame/dispatch [:init-con-panel-scene]) ;;vt-x
+  (main-scene/run-scene render-loop)) ;;vt-x
+  ; (main-scene/run-scene-2))
+
+; (defn init []
+;   (println "game.cljs: now in new init"))
+;   ; (test-scene-ecsy/init)
+;   ; (main-scene/init-basic))
+;   ; (main-scene/init-basic-ecsy))

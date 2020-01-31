@@ -6,7 +6,10 @@
                                org.clojure/google-closure-library-third-party]]
                  [thheller/shadow-cljs "2.8.80"]
                  [reagent "0.8.1"]
-                 [re-frame "0.10.9"]]
+                 [re-frame "0.10.9"]
+                 ;;vt add
+                 [funcool/promesa "5.0.0"]]
+                 ; [roman01la/cljs-async-await "1.0.0"]]
                  ; [babylonjs-gui "4.0.3"]]
 
   :plugins [

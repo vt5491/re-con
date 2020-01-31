@@ -40,3 +40,6 @@
    :12 (hotel-imgs 4), :13 (hotel-imgs 5), :14 (hotel-imgs 6), :15 (hotel-imgs 7)})
 
 (def rebus-img-stem "dont_beat_round_the_bush-")
+
+; (def use-xr false)
+(def use-xr true)
