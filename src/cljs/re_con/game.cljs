@@ -4,6 +4,7 @@
    [re-frame.core :as re-frame]
    [re-con.base :as base]
    [re-con.controller :as controller]
+   [re-con.controller-xr :as ctrl-xr]
    [re-con.cell :as cell]
    [re-con.main-scene :as main-scene]
    [re-con.test-scene-ecsy :as test-scene-ecsy]
@@ -18,10 +19,12 @@
 ; (def rebus-img-stem "dont_beat_round_the_bush-")
 
 (defn render-loop []
-      ; (println "render loop")
-      ; (::controller/tick)
-      (controller/tick) ;;vt-x
-      (.render main-scene/scene))
+  ; (println "render loop")
+  ; (::controller/tick)
+  (if base/use-xr
+    (ctrl-xr/tick)
+    (controller/tick))
+  (.render main-scene/scene))
 
 (defn init []
   (println "game.cljs: now in orig init")

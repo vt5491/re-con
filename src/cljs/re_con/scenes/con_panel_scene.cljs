@@ -28,6 +28,8 @@
 (def ^:const panel-array-yc 1)
 (def ^:const panel-array-zc 6)
 
+; (declare mesh-collider-handler)
+
 (defn abc [msg]
   (println "hello from abc, msg is " msg))
 
@@ -151,6 +153,9 @@
                                                                      (+ (* -1 row-index (+ panel-height panel-spacing)) panel-array-yc (* (- base/board-row-cnt 1) panel-height))
                                                                      panel-array-zc))
                                              (set! (.-material pnl) main-scene/redMaterial)
+                                             ;;vt-x add
+                                             (-> pnl (.-onCollideObservable) (.add (fn [] (println "mesh collision"))))
+                                             ;;vt-x end
                                              (recur (dec col-index) (conj row pnl)))))))))))
 
 (defn init-status-panel []
@@ -265,3 +270,7 @@
 
 (defn update-status-panel [msg]
   (.drawText (-> status-panel .-material .-diffuseTexture) msg 100 200 "200px green" "white" "blue" true true))
+
+;
+; (defn mesh-collider-handler []
+;   (println "con_panel_scene: mesh collision detected"))
