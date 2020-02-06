@@ -8,7 +8,8 @@
    [re-con.scenes.con-panel-scene :as cp-scene]
    [re-con.cell :as cell]
    [re-con.board :as board]
-   [re-con.game :as game]))
+   [re-con.game :as game]
+   [re-con.controller-xr :as ctrl-xr]))
 
 (def tmp)
 
@@ -158,7 +159,9 @@
    ; (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")])
    ; (cp-scene/update-status-panel "xyz")
    ; (println "result=" (utils/gen-img-map base/hotel-imgs))
-   (println "gen-front-img-map=" (utils/gen-front-img-map base/hotel-imgs))
+   ; (println "gen-front-img-map=" (utils/gen-front-img-map base/hotel-imgs))
+   ; scene.debugLayer.show();
+   (-> main-scene/scene (.-debugLayer) (.show))
    ; (let [dynMat (.-material cp-scene/status-panel)]
    ;   (println "dynMat.texture=" (.-diffuseTexture dynMat))
    ;   (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
@@ -273,3 +276,26 @@
    ; (assoc-in db [(nth (db :board-cells) match-index) :status] :matched)
    (println "cell-matched: index=" match-index ", status=" (get-in db [:board-cells match-index :status]))
    (assoc-in db [:board-cells match-index :status] :matched)))
+
+;; xr events
+;; intermediary between a babylon.js 'onControllerAddedObservable' event and our
+;; user level handler.  We are basically just using re-frame as a router here so
+;; it's at least hooked into the event pipeline.
+(re-frame/reg-event-db
+  :attach-ray
+ (fn [db [_ xr-ctrl ray]]
+   (ctrl-xr/attach-ray-to-laser-pointer xr-ctrl ray)
+   db))
+
+;
+(re-frame/reg-event-db
+ :setup-xr-ctrl-cbs
+ (fn [db [_ xr]]
+   (ctrl-xr/setup-xr-ctrl-cbs xr)
+   db))
+
+(re-frame/reg-event-db
+ :init-xr
+ (fn [db [_ scene xr]]
+   (ctrl-xr/init scene xr)
+   db))

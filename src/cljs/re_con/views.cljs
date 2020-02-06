@@ -17,4 +17,4 @@
      [:button.print-db {:on-click #(re-frame/dispatch [:print-db])} "print-db"]
      [:button.print-db {:on-click #(re-frame/dispatch [:action])} "action"]
      [:button.print-db {:on-click #(re-frame/dispatch [:action-2])} "action-2"]
-     [:canvas {:style {:width 1024 :height 768 :border 5} :id "renderCanvas"}]]))
+     [:canvas {:style {:width 1024 :height 768 :border 5} :touchaction "none" :id "renderCanvas"}]]))

@@ -19,6 +19,12 @@
 
   :source-paths ["src/clj" "src/cljs"]
 
+  ;;vt add for re-frame-10x
+  ; :compiler    {
+  ;                :closure-defines      {"re_frame.trace.trace_enabled_QMARK_" true}
+  ;                :preloads             [day8.re-frame-10x.preload]
+  ;                :main                 "re-con.core"}
+  ;;vt end
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
 
@@ -43,6 +49,14 @@
 
   :profiles
   {:dev
-   {:dependencies [[binaryage/devtools "0.9.11"]]}
+   {:dependencies [[binaryage/devtools "0.9.11"]
+   ;; vt add for re-frame-10x
+                   [day8.re-frame/re-frame-10x "0.4.7"]
+                   [day8.re-frame/tracing "0.5.3"]]}
+    ; :compiler    {
+    ;               :closure-defines      {"re_frame.trace.trace_enabled_QMARK_" true}
+    ;               :preloads             [day8.re-frame-10x.preload]
+    ;               :main                 "re-con.core"}}
+
 
    :prod {}})

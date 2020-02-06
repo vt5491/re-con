@@ -9,8 +9,11 @@
     "create-react-class": "15.6.3",
     "earcut": "^2.2.1",
     "ecsy": "^0.2.2",
+    "highlight.js": "9.15.10",
     "oimo": "^1.0.9",
+    "pepjs": "^0.5.2",
     "react": "16.8.6",
-    "react-dom": "16.8.6"
+    "react-dom": "16.8.6",
+    "react-highlight.js": "1.0.7"
   }
 }

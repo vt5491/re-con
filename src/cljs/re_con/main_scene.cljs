@@ -1,13 +1,14 @@
 ;; main_scene should reference few and be accessible by many
 (ns re-con.main-scene
   (:require
+   [re-frame.core :as re-frame]
     ;; actually don't need to require babylonjs as it's in the js namespace already.
    ; [babylonjs]
    ; [promesa.core :as p :refer-macros [async]]
    ; [re-con.utils as utils]))
    [re-con.base :as base]
    [re-con.controller :as controller]
-   [re-con.controller-xr :as ctrl-xr]
+   ; [re-con.controller-xr :as ctrl-xr]
    [re-con.test-scene-ecsy :as test-scene-ecsy]
    [promesa.core :as p]
    [components]
@@ -46,11 +47,13 @@
 (def ray)
 (def picking-ray)
 (def ray-helper)
+(def features-manager)
 
 (declare init-part-2)
 (declare init-basic-2-2)
 ; (declare setup-xr-ctrl-cbs)
 (declare cast-ray)
+(declare pointer-handler)
 
 (defn mesh-selected [])
 
@@ -91,20 +94,31 @@
           (p/then
            (fn [x] (println "xr-x=" x ",scene=" scene)
              (set! xr x)
-             (ctrl-xr/setup-xr-ctrl-cbs xr)
+             ; (set! (.-pointerSelection xr) false)
+             ; (ctrl-xr/setup-xr-ctrl-cbs xr)
+             (re-frame/dispatch [:setup-xr-ctrl-cbs xr])
              ; (js-debugger)
+             ; (js/BABYLON.WebXRFeaturesManager.disableFeature "xr-controller-pointer-selection")
+             (set! features-manager (-> xr (.-baseExperience) (.-featuresManager)))
+             ; (.disableFeature features-manager "xr-controller-pointer-selection")
+             ; (.enableFeature features-manager "xr-controller-pointer-selection")
              (println "xr features available=" (.GetAvailableFeatures js/BABYLON.WebXRFeaturesManager))
              (println "xr features acitve=" (-> xr (.-baseExperience) (.-featuresManager) (.getEnabledFeatures)))
+             (println "POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
+             (println "POINTERPICK=" js/BABYLON.PointerEventTypes.POINTERPICK)
              (.registerBeforeRender scene cast-ray)
              (set! tmp-obj (js/BABYLON.MeshBuilder.CreateBox. "tmp-obj"
                                                               (js-obj "height" 0.25, "width" 0.25, "depth" 0.25)
                                                               scene))
-             (set! (.-position tmp-obj) (js/BABYLON.Vector3. 0 0.5 0))
+             ; (set! (.-position tmp-obj) (js/BABYLON.Vector3. 0 0.5 0))
+             (set! (.-position tmp-obj) (js/BABYLON.Vector3. 2 0.5 0))
              (set! (.-material tmp-obj) greenMaterial)
              (set! camera (-> x (.-baseExperience) (.-camera)))
-             (ctrl-xr/init scene xr)
+             ; (ctrl-xr/init scene xr)
+             (re-frame/dispatch [:init-xr xr])
              (set! ray (js/BABYLON.Ray.))
              (set! ray-helper (js/BABYLON.RayHelper. ray))
+             ; (set! ctrl-xr/left-ray ray)
              (.attachToMesh ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20)
              (.show ray-helper scene js/BABYLON.Color3. 255 0 0)
              (init-part-2)))))) ;; no work if no obj-moving in stanza
@@ -113,41 +127,13 @@
                                                      ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene)))))))
                                                      ; (set! camera (-> x (.-baseExperience) (.-camera))))))))
 
-  ; ; var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
-  ; ; (set! xr (.createDefaultXRExperienceAsync scene))
-  ; ; (p/do!
-  ; ;  (println "xr about to set")
-  ; ;  (set! xr (.createDefaultXRExperienceAsync scene))
-  ; ;  (println "xr set"))
-  ; ; (controller/init scene vrHelper) ;;vt-x
-  ; ; (-> vrHelper .-onNewMeshSelected (.add (fn [] (println "new mesh selected"))))
-  ; ; (set! camera (.-webVRCamera vrHelper)) ;;vt-x
-  ; ; (.resetToCurrentRotation camera)
-  ; ; (.rotationQuaternion camera (.-FromEulersAngles (.-Quaternion js/BABYLON) 0 (/ js/Math.PI 2) 0))
-  ; (println "abc=" (-> js/BABYLON.Quaternion (.FromEulerAngles 0 1 0)))
-  ; ; (.rotationQuaternion camera (FromEulersAngles js/BABYLON.Quaternion 0 (/ js/Math.PI 2) 0))
-  ; ;; in scruz, have to rotate camera 180 deg for some reason to get proper vr camera alignment with board.
-  ; ; (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
-  ; ; (js/setupLoaders scene)
-  ; (set! redMaterial (js/BABYLON.StandardMaterial. "redMaterial" scene))
-  ; (set! (.-diffuseColor redMaterial) (js/BABYLON.Color3. 1 0 0))
-  ; (set! blueMaterial (js/BABYLON.StandardMaterial. "blueMaterial" scene))
-  ; (set! (.-diffuseColor blueMaterial) (js/BABYLON.Color3. 0 0 1))
-  ; (set! greenMaterial (js/BABYLON.StandardMaterial. "greenMaterial" scene))
-  ; (set! (.-diffuseColor greenMaterial) (js/BABYLON.Color3. 0 1 0))
-  ; (set! imgMat (js/BABYLON.StandardMaterial. "imgMat" scene))
-  ; (set! assetsManager (js/BABYLON.AssetsManager. scene))
-  ; (set! textureTask (.addTextureTask assetsManager "load-texture" "imgs/burj_al_arab.jpg"))
-  ; (set! textureTask.onSuccess (load-img-cb))
-  ; (.load assetsManager)
-  ; ; (.enableInteractions vrHelper)
-  ; (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-  ; (.setEnabled light1 true)
-  ; (set! gui-3d-manager (js/BABYLON.GUI.GUI3DManager. scene)))
 
 (defn init-part-2 []
   (println "now in init-part-2")
-  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 -3) scene))
+  ;; svale adjustment
+  ;; Note: need if not using webxr (browser) extension, comment out if you are.
+  ; (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
+  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
   (.setEnabled light1 true)
   ;; need to have obj-moving for some reason
   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
@@ -169,7 +155,8 @@
   (.load assetsManager)
   ; (.enableInteractions vrHelper)
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-  (.setEnabled light1 true))
+  (.setEnabled light1 true)
+  (-> (.-onPointerObservable scene) (.add pointer-handler)))
   ; (set! gui-3d-manager (js/BABYLON.GUI.GUI3DManager. scene)))
   ; (.runRenderLoop engine (fn []
   ;                          (let [time (-> (js/performance.now) (/ 1000))
@@ -209,138 +196,47 @@
   ; (set! picking-ray
   ;   (.createPickingRay scene (.-pointerX scene) (.-pointerY scene) (.Identity js/BABYLON.Matrix) (.-activeCamera scene)))
 
-; (defn run-scene-2 []
-;   (.runRenderLoop engine (fn []
-;                            (let [time (-> (js/performance.now) (/ 1000))
-;                                  delta (- time last-time)]
-;                              (set! last-time time)
-;                              (.render scene)))))
-;
-; (defn init-basic []
-;   (set! canvas (-> js/document (.getElementById "renderCanvas")))
-;   (set! engine (js/BABYLON.Engine. canvas true))
-;   (set! scene (js/BABYLON.Scene. engine))
-;   (set! env (.-createDefaultEnvironment scene))
-;   ; (set! xr (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env)))))
-;   (set! xr (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env)))))
-;   ; (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
-;   ;     (p/then (fn [x](set! xr x))))
-;   (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene))
-;   (.setTarget camera (js/BABYLON.Vector3.Zero))
-;   (.attachControl camera canvas false)
-;   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-;   (.setEnabled light1 true)
-;   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
-;                     "status-panel"
-;                     (js-obj "height" 2
-;                             "width" 2
-;                             "depth" 0.1
-;                             scene)))
-;   (let [mat (js/BABYLON.StandardMaterial.)]
-;     (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
-;     (set! (.-material obj-moving) mat))
-;   (.runRenderLoop engine (fn []
-;                            (let [time (-> (js/performance.now) (/ 1000))
-;                                  delta (- time last-time)]
-;                              (set! last-time time)
-;                              (.render scene)))))
-;                              ; (.execute world delta time)))))
-;
-; (defn init-basic-2 []
-;   (set! canvas (-> js/document (.getElementById "renderCanvas")))
-;   (set! engine (js/BABYLON.Engine. canvas true))
-;   (set! scene (js/BABYLON.Scene. engine))
-;   (set! env (.-createDefaultEnvironment scene))
-;   ; (set! xr (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env)))))
-;   ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene))
-;   (when base/use-xr
-;     ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene))
-;     (-> (.createDefaultXRExperienceAsync scene)
-;         (p/then (fn [x]
-;                   (println "x=" x)
-;                   (set! xr x)
-;                   (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene))))))
-;   ; (.setTarget camera (js/BABYLON.Vector3.Zero))
-;   ; (.attachControl camera canvas false)
-;   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-;   (.setEnabled light1 true)
-;   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
-;                     "status-panel"
-;                     (js-obj "height" 2
-;                             "width" 2
-;                             "depth" 0.1
-;                             scene)))
-;   (let [mat (js/BABYLON.StandardMaterial.)]
-;     (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
-;     (set! (.-material obj-moving) mat))
-;   (.runRenderLoop engine (fn []
-;                            (let [time (-> (js/performance.now) (/ 1000))
-;                                  delta (- time last-time)]
-;                              (set! last-time time)
-;                              (.render scene)))))
-;
-; (defn init-basic-2-2 []
-;   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-;   (.setEnabled light1 true)
-;   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
-;                     "status-panel"
-;                     (js-obj "height" 0.02
-;                             "width" 0.02
-;                             "depth" 0.1
-;                             scene)))
-;   (let [mat (js/BABYLON.StandardMaterial.)]
-;     (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
-;     (set! (.-material obj-moving) mat))
-;   (.runRenderLoop engine (fn []
-;                            (let [time (-> (js/performance.now) (/ 1000))
-;                                  delta (- time last-time)]
-;                              (set! last-time time)
-;                              (.render scene)))))
-;
-; (defn init-basic-ecsy []
-;   (println "test-scene-ecsy.init: entered")
-;   (set! object-3d (components/Object3D.)) ;; works
-;   (println "init: object-3d=" object-3d)
-;   (test-scene-ecsy/set-movable-system-queries)
-;   (test-scene-ecsy/set-rotating-system-queries)
-;   (set! world (ecsy/World.))
-;   (println "init: world=" world)
-;   (set! canvas (-> js/document (.getElementById "renderCanvas")))
-;   (set! engine (js/BABYLON.Engine. canvas true))
-;   (println "init: engine4=" engine)
-;   (set! scene (js/BABYLON.Scene. engine))
-;   (set! env (.-createDefaultEnvironment scene))
-;   (set! xr (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env)))))
-;   (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene))
-;   (.setTarget camera (js/BABYLON.Vector3.Zero))
-;   (.attachControl camera canvas false)
-;   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
-;   (.setEnabled light1 true)
-;
-;   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
-;                     "status-panel"
-;                     (js-obj "height" 2
-;                             "width" 2
-;                             "depth" 0.1
-;                             scene)))
-;   (let [mat (js/BABYLON.StandardMaterial.)]
-;     (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
-;     (set! (.-material obj-moving) mat))
-;   (-> (.-systemManager world) (.registerSystem systems/MovableSystemWrapper))
-;   (-> (.-systemManager world) (.registerSystem systems/RotatingSystemWrapper))
-;
-;   ; (set! cube-entity (-> (.-entityManager world) (.createEntity)))
-;   ; (.addComponent cube-entity components/Position)
-;   ; (.addComponent cube-entity components/Velocity (js-obj "vx" 0.2, "vy" 0.2))
-;   ; (.addComponent cube-entity components/Object3D (js-obj "object" obj-moving))
-;   ; (.addComponent cube-entity components/Rotating (js-obj "rotatingSpeed" 0.5))
-;   (set! last-time (/ (js/performance.now) 1000))
-;   (println "init: about to runRenderLoop")
-;   (.runRenderLoop engine (fn []
-;                            (let [time (-> (js/performance.now) (/ 1000))
-;                                  delta (- time last-time)]
-;                              (set! last-time time)
-;                              (.render scene)
-;                              (.execute world delta time)))))
+(defn pointer-handler [pointer-info]
+  (let [type (.-type pointer-info)
+        ; picked-mesh (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id))
+        picked-mesh (if (and
+                         (.-pickInfo pointer-info)
+                         (-> pointer-info (.-pickInfo) (.-pickedMesh)))
+                         ; (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id)))
+                      (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id)))]
+    (cond
+      (= type js/BABYLON.PointerEventTypes.POINTERDOWN) (do (println "POINTER DOWN, picked-mesh=" picked-mesh))
+      (= type js/BABYLON.PointerEventTypes.POINTERPICK) (do (println "POINTER PICK"))
+      (= type js/BABYLON.PointerEventTypes.POINTERMOVE) (do (println "POINTER MOVE"))
+      ; :else (println "cond-CATCHALL")
+      :else nil)))
+  ;(case (.-type pointer-info)
+  ;   js/BABYLON.PointerEventTypes.POINTERDOWN (do (println "POINTER DOWN"))
+  ;   js/BABYLON.PointerEventTypes.POINTERPICK (do (println "POINTER PICK"))
+  ;   (println "CATCHALL: pointer-info.type=" (.-type pointer-info))))
+
+; scene.onPointerObservable.add((pointerInfo) => {})
+;     switch (pointerInfo.type) {}
+;         case BABYLON.PointerEventTypes.POINTERDOWN:
+;             console.log("POINTER DOWN");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERUP:
+;             console.log("POINTER UP");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERMOVE:
+;             console.log("POINTER MOVE");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERWHEEL:
+;             console.log("POINTER WHEEL");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERPICK:
+;             console.log("POINTER PICK");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERTAP:
+;             console.log("POINTER TAP");
+;             break;
+;         case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
+;             console.log("POINTER DOUBLE-TAP");
+;             break;
 ;
 ;

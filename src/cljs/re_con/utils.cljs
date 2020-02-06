@@ -111,3 +111,19 @@
                                (let [n1 (kwd-to-int k1)
                                      n2 (kwd-to-int k2)]
                                  (compare n1 n2)))) result)))))
+;; when in xr mode, return the laser-pointer mesh attached to the controller model.
+;; example: (get-xr-laser-pointer :left my-scene)
+;; Note: this only works once a controller is actually attached e.g. on a 'onControllerAddedObservable' event.
+(defn get-xr-laser-pointer [hand scene]
+  ;; we start with the trigger mesh which is the only mesh that has the "hand" in its name
+  (let [trigger-mesh (str "generic-trigger " (name hand))
+        parent (.parent (.getMeshByID scene trigger-mesh))
+        ctrl-pointer-mesh (.getMeshByID scene "controllerPointer")]
+    ctrl-pointer-mesh))
+
+
+(defn get-left-xr-laser-pointer [scene]
+  (get-xr-laser-pointer :left scene))
+
+(defn get-right-xr-laser-pointer [scene]
+  (get-xr-laser-pointer :right scene))

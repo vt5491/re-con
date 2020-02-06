@@ -1,7 +1,10 @@
 ;; good docs:
 ;;https://doc.babylonjs.com/how_to/introduction_to_webxr
 (ns re-con.controller-xr
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            ; [re-con.main-scene :as main-scene]; note: generates circular dependency))
+            [re-con.main-scene :as main-scene]
+            [re-con.utils :as utils]))
             ; [re-con.db :as db]))
 
 (def scene)
@@ -25,6 +28,7 @@
   (println "controller-xr.init entered")
   (set! scene tgt-scene)
   (set! xr xr-helper))
+  ; (set! left-ray main-scene/ray))
 
 (defn ^:export setup-xr-ctrl-cbs [xr-helper]
   (-> xr-helper (.-input ) (.-onControllerAddedObservable) (.add ctrl-added)))
@@ -41,7 +45,9 @@
     (when (= handedness :right)
       (set! right-ctrl-xr xr-controller)
       ; (.onCollideObservable (.-pointer xr-controller) pointer-collider-handler)
-      (-> (.-pointer xr-controller) (.-onCollideObservable) (.add pointer-collider-handler)))
+      (-> (.-pointer xr-controller) (.-onCollideObservable) (.add pointer-collider-handler))
+      (set! (-> (.-pointer xr-controller) (.-onCollide)) pointer-collider-handler))
+      ; (js-debugger))
       ; (set! right-ray (.getWorldPointerRayToRef xr-controller)))
 
     (set! main-trigger (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
@@ -55,6 +61,8 @@
       (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
                                                         right-trigger-handler
                                                         left-trigger-handler))))))
+      ; (re-frame/dispatch [:attach-ray main-scene/ray xr-controller])
+      ; (re-frame/dispatch [:attach-ray handedness main-scene/ray-helper]))))
 
 (defn trigger-handler []
   (println "trigger fired"))
@@ -76,9 +84,34 @@
       (if (re-matches #".*-(right).*" id)
         :right))))
 
+;
+; function predicate(mesh){}
+;   if (mesh == box2 || mesh == box){}
+;     return false;
+;
+;   return true;
+(defn mesh-select-predicate [mesh]
+  (if (= (.-name mesh) "tmp-obj")
+    false
+    true))
+
 (defn ^:export tick []
-  (if left-ray
-    (let [hit (.pickWithRay left-ray)]
+  (if false
+  ; (if left-ray
+  ; (if main-scene/ray
+    ; (let [hit (.-pickWithRay left-ray)])
+    (let [hit (.pickWithRay scene left-ray mesh-select-predicate)]
       (if hit
-        (println "picking hit: mesh=" (.-pickedMesh hit))))))
-  ; var hit = scene.pickWithRay(ray));
+        (println "picking hit: mesh.name=" (-> hit (.-pickedMesh) (.-name)) ", mesh=" (.-pickedMesh hit))))))
+;
+; (defn ^:export tick []
+;   (if main-scene/ray
+;     (let [hit (.pickWithRay main-scene/ray)]
+;       (if hit
+;         (println "picking hit: mesh=" (.-pickedMesh hit))))))
+(defn attach-ray-to-laser-pointer [hand ray]
+  (println "attach-ray-to-last-pointer: ray=" ray)
+  ; (let [laser-pointer-mesh (.getMeshByID xr-ctrl "laserPointer")])
+  (let [laser-pointer-mesh (utils/get-xr-laser-pointer hand main-scene/scene)]
+    (.attachToMesh main-scene/ray-helper laser-pointer-mesh)))
+  ; (.attachToMesh main-scene/ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20))
