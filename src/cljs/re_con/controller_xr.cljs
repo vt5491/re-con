@@ -13,10 +13,20 @@
 (def left-ctrl-xr)
 (def right-ctrl-xr)
 (def main-trigger)
+(def grip)
 (def left-ray)
 (def right-ray)
+(def is-gripping false)
+(def grip-start-pos)
+(def player-start-pos)
+(def last-player-pos)
+(def last-grip-vel)
+(def last-grip-time)
+(def grip-factor 1.9)
+(def GRIP_DECELERATION_INT 1000)
 
 (declare trigger-handler-xr)
+(declare grip-handler-xr)
 (declare get-ctrl-handedness)
 (declare ctrl-added)
 (declare left-trigger-handler)
@@ -27,7 +37,10 @@
 (defn init [tgt-scene xr-helper]
   (println "controller-xr.init entered")
   (set! scene tgt-scene)
-  (set! xr xr-helper))
+  (set! xr xr-helper)
+  (set! last-grip-time 0)
+  (set! last-grip-vel (js/BABYLON.Vector3. 0 0 0))
+  (set! last-player-pos (.-position main-scene/camera)))
   ; (set! left-ray main-scene/ray))
 
 (defn ^:export setup-xr-ctrl-cbs [xr-helper]
@@ -57,11 +70,18 @@
     (println "controller-xr.ctrl-added: main-trigger=" main-trigger)
     (when main-trigger
       ; (.onButtonStateChanged main-trigger trigger-handler)
-      (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))))
+      (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))
+    (set! grip (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.SQUEEZE)))
+    (when grip
+       (-> grip (.-onButtonStateChanged) (.add grip-handler-xr)))))
+
       ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler))
       ; (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
       ;                                                   right-trigger-handler
       ;                                                   left-trigger-handler)))
+      ;; the following works, but I chose to do all trigger events handling in main-scene/pointerHandler
+      ;; so the mesh-selected and trigger-handler events occur at the same time.  I get timing issues
+      ;; if I do them separately.
       ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler-xr)))))
       ; (re-frame/dispatch [:attach-ray main-scene/ray xr-controller])
       ; (re-frame/dispatch [:attach-ray handedness main-scene/ray-helper]))))
@@ -71,6 +91,17 @@
   ; (js-debugger))
   ; (re-frame/dispatch [:trigger-handler {:pressed (.-pressed trigger-state)}])
   (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))]))
+
+(defn grip-handler-xr [grip-state]
+  (println "grip-handler-xr: grip fired, grip-state=" grip-state)
+  (if (.-pressed grip-state)
+    (when (and left-ctrl-xr (not is-gripping))
+      ; (js-debugger))))
+      (set! grip-start-pos (-> left-ctrl-xr (.-grip) (.-position) (.clone)))
+      (set! is-gripping true)
+      (set! player-start-pos (.-position main-scene/camera))
+      (set! last-grip-time (.now js/Date)))
+    (set! is-gripping false)))
 
 (defn left-trigger-handler []
   (println "left trigger fired"))
@@ -101,19 +132,36 @@
     true))
 
 (defn ^:export tick []
-  (if false
-  ; (if left-ray
-  ; (if main-scene/ray
-    ; (let [hit (.-pickWithRay left-ray)])
-    (let [hit (.pickWithRay scene left-ray mesh-select-predicate)]
-      (if hit
-        (println "picking hit: mesh.name=" (-> hit (.-pickedMesh) (.-name)) ", mesh=" (.-pickedMesh hit))))))
+  (when left-ctrl-xr
+    (cond
+      is-gripping
+      (let [ctrl-delta-pos (-> left-ctrl-xr (.-grip) (.-position) (.subtract grip-start-pos) (.multiplyByFloats grip-factor grip-factor grip-factor))
+            new-pos (.subtract (.-position main-scene/camera) ctrl-delta-pos)]
+        (set! (.-position main-scene/camera) new-pos)
+        (set! last-grip-vel (.subtract new-pos last-player-pos))
+        (set! last-player-pos (.-position main-scene/camera)))
+      (and (not is-gripping) last-grip-vel (< (- (.now js/Date)  last-grip-time) 1000))
+      (let [delta-time (- (.now js/Date) last-grip-time)
+            vel-strength (* 5.6 (- 1.0 (/ delta-time GRIP_DECELERATION_INT)))
+            delta-pos (.multiplyByFloats last-grip-vel vel-strength vel-strength vel-strength)]
+        (set! (.-position main-scene/camera) (.add (.-position main-scene/camera) delta-pos))))))
+
+
+
+  ; (if false
+  ; ; (if left-ray
+  ; ; (if main-scene/ray
+  ;   ; (let [hit (.-pickWithRay left-ray)])
+  ;   (let [hit (.pickWithRay scene left-ray mesh-select-predicate)]
+  ;     (if hit
+  ;       (println "picking hit: mesh.name=" (-> hit (.-pickedMesh) (.-name)) ", mesh=" (.-pickedMesh hit))))))
 ;
 ; (defn ^:export tick []
 ;   (if main-scene/ray
 ;     (let [hit (.pickWithRay main-scene/ray)]
 ;       (if hit
 ;         (println "picking hit: mesh=" (.-pickedMesh hit))))))
+;defunct
 (defn attach-ray-to-laser-pointer [hand ray]
   (println "attach-ray-to-last-pointer: ray=" ray)
   ; (let [laser-pointer-mesh (.getMeshByID xr-ctrl "laserPointer")])

@@ -58,7 +58,8 @@
 (re-frame/reg-event-db
  :show-panel-face
  (fn [db [_ _]]
-   (cp-scene/show-panel-face db (-> (db :selected-mesh) (.-name)))
+   (when (:selected-mesh db)
+     (cp-scene/show-panel-face db (-> (db :selected-mesh) (.-name))))
    db))
 
 (re-frame/reg-event-db
