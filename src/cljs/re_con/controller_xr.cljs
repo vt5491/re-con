@@ -16,7 +16,7 @@
 (def left-ray)
 (def right-ray)
 
-(declare trigger-handler)
+(declare trigger-handler-xr)
 (declare get-ctrl-handedness)
 (declare ctrl-added)
 (declare left-trigger-handler)
@@ -51,21 +51,26 @@
       ; (set! right-ray (.getWorldPointerRayToRef xr-controller)))
 
     (set! main-trigger (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
+    ; (js-debugger)
     ; (set! ctrl-xr xr-controller)
     ; (set! main-trigger (-> ctrl-xr (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
     (println "controller-xr.ctrl-added: main-trigger=" main-trigger)
     (when main-trigger
       ; (.onButtonStateChanged main-trigger trigger-handler)
-      (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger)
+      (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))))
       ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler))
-      (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
-                                                        right-trigger-handler
-                                                        left-trigger-handler))))))
+      ; (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
+      ;                                                   right-trigger-handler
+      ;                                                   left-trigger-handler)))
+      ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler-xr)))))
       ; (re-frame/dispatch [:attach-ray main-scene/ray xr-controller])
       ; (re-frame/dispatch [:attach-ray handedness main-scene/ray-helper]))))
 
-(defn trigger-handler []
-  (println "trigger fired"))
+(defn trigger-handler-xr [trigger-state]
+  (println "trigger-handler-xr: trigger fired, pressed=" (.-pressed trigger-state))
+  ; (js-debugger))
+  ; (re-frame/dispatch [:trigger-handler {:pressed (.-pressed trigger-state)}])
+  (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))]))
 
 (defn left-trigger-handler []
   (println "left trigger fired"))

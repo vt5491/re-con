@@ -101,7 +101,10 @@
          ; and fire a cell-picked event
          ; (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
    ; {
+    ; (js-debugger)
+    (println ":trigger-handler: .-pressed stateObject=" (.-pressed stateObject) ", selected-mesh=" (db :selected-mesh))
     (merge {:db (assoc db :trigger-pressed (.-pressed stateObject))}
+    ; (merge {:db (assoc db :trigger-pressed true)}
            (when-let [dummy-val
                       ; (and (or (= first-pick nil) (= second-pick nil)
                       (and
@@ -128,7 +131,7 @@
 (re-frame/reg-event-db
  :mesh-selected
  (fn [db [_ mesh mesh-index]]
-   ; (println "events: :mesh-selected event")
+   (println "events: :mesh-selected event")
    (assoc db :selected-mesh mesh)))
    ; (assoc (assoc db :selected-mesh mesh) :selected-mesh-index mesh-index)))
 
@@ -281,6 +284,7 @@
 ;; intermediary between a babylon.js 'onControllerAddedObservable' event and our
 ;; user level handler.  We are basically just using re-frame as a router here so
 ;; it's at least hooked into the event pipeline.
+;; defunct
 (re-frame/reg-event-db
   :attach-ray
  (fn [db [_ xr-ctrl ray]]

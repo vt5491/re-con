@@ -156,7 +156,8 @@
   ; (.enableInteractions vrHelper)
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 5 5 0) scene))
   (.setEnabled light1 true)
-  (-> (.-onPointerObservable scene) (.add pointer-handler)))
+  (if base/use-xr
+    (-> (.-onPointerObservable scene) (.add pointer-handler))))
   ; (set! gui-3d-manager (js/BABYLON.GUI.GUI3DManager. scene)))
   ; (.runRenderLoop engine (fn []
   ;                          (let [time (-> (js/performance.now) (/ 1000))
@@ -203,11 +204,25 @@
                          (.-pickInfo pointer-info)
                          (-> pointer-info (.-pickInfo) (.-pickedMesh)))
                          ; (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id)))
-                      (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id)))]
+                      (-> pointer-info (.-pickInfo) (.-pickedMesh)))]
     (cond
-      (= type js/BABYLON.PointerEventTypes.POINTERDOWN) (do (println "POINTER DOWN, picked-mesh=" picked-mesh))
-      (= type js/BABYLON.PointerEventTypes.POINTERPICK) (do (println "POINTER PICK"))
-      (= type js/BABYLON.PointerEventTypes.POINTERMOVE) (do (println "POINTER MOVE"))
+      ; (= type js/BABYLON.PointerEventTypes.POINTERDOWN) (do (println "POINTER DOWN, picked-mesh=" (.-id picked-mesh)))
+      ; (= type js/BABYLON.PointerEventTypes.POINTERPICK)
+      (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
+      (do
+        (println "POINTER DOWN, picked-mesh=" picked-mesh)
+        ; (js-debugger)
+        (re-frame/dispatch [:mesh-selected picked-mesh])
+        ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
+        (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)]))
+      (= type js/BABYLON.PointerEventTypes.POINTERUP)
+      (do
+        (println "POINTER UP, picked-mesh=" picked-mesh)
+        ; (js-debugger)
+        ; (re-frame/dispatch [:mesh-selected picked-mesh])
+        ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
+        (re-frame/dispatch [:trigger-handler (js-obj "pressed" false)]))
+      ; (= type js/BABYLON.PointerEventTypes.POINTERMOVE) (do (println "POINTER MOVE"))
       ; :else (println "cond-CATCHALL")
       :else nil)))
   ;(case (.-type pointer-info)

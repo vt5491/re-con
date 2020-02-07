@@ -7,6 +7,7 @@
   "given a panel (babylon mesh), return the index within the board.  Assumes a panel naming convention of 'panel-xx'"
   [panel]
   ; (println "get-panel-index, panel name=" (.-name panel) ",match=" (re-matches #"panel-(\d+)" (.-name panel)))
+  (println "get-panel-index, panel=" panel) 
   ; (println "result=" (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
   (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
 
@@ -111,6 +112,8 @@
                                (let [n1 (kwd-to-int k1)
                                      n2 (kwd-to-int k2)]
                                  (compare n1 n2)))) result)))))
+
+;; defunct
 ;; when in xr mode, return the laser-pointer mesh attached to the controller model.
 ;; example: (get-xr-laser-pointer :left my-scene)
 ;; Note: this only works once a controller is actually attached e.g. on a 'onControllerAddedObservable' event.
@@ -121,9 +124,10 @@
         ctrl-pointer-mesh (.getMeshByID scene "controllerPointer")]
     ctrl-pointer-mesh))
 
-
+;;defunct
 (defn get-left-xr-laser-pointer [scene]
   (get-xr-laser-pointer :left scene))
 
+;;defunct
 (defn get-right-xr-laser-pointer [scene]
   (get-xr-laser-pointer :right scene))
