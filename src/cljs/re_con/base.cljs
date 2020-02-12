@@ -43,3 +43,5 @@
 
 ; (def use-xr false)
 (def use-xr true)
+(def scale-factor 1)
+; (def scale-factor 100)

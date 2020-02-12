@@ -23,6 +23,7 @@
 (def scene)
 (def env)
 (def camera)
+(def camera-init-pos (js/BABYLON.Vector3. 0 5 -5))
 (def vrHelper)
 (def xr)
 (def ground)
@@ -48,14 +49,22 @@
 (def picking-ray)
 (def ray-helper)
 (def features-manager)
+(def dummy)
+(def model-scale-factor 0.02)
 
 (declare init-part-2)
 (declare init-basic-2-2)
 ; (declare setup-xr-ctrl-cbs)
 (declare cast-ray)
 (declare pointer-handler)
+(declare set-scaling)
 
 (defn mesh-selected [])
+
+; (defn dummy-fn [m]
+;   (println "m=" m))
+(defn dummy-fn []
+  (println "m="))
 
 (defn load-img-cb []
   (fn [task]
@@ -63,6 +72,9 @@
 
 (defn init []
   (println "now in init-scene")
+  ; BABYLON.Animation.AllowMatricesInterpolation = true;
+  ;; following line necessary for mixamo animations.
+  (set! js/BABYLON.Animation.AllowMatricesInterpolation true)
   (set! canvas (-> js/document (.getElementById "renderCanvas")))
   (set! engine (js/BABYLON.Engine. canvas true))
   (set! scene (js/BABYLON.Scene. engine))
@@ -73,11 +85,41 @@
   (set! (.-diffuseColor blueMaterial) (js/BABYLON.Color3. 0 0 1))
   (set! greenMaterial (js/BABYLON.StandardMaterial. "greenMaterial" scene))
   (set! (.-diffuseColor greenMaterial) (js/BABYLON.Color3. 0 1 0))
+  ;; load in a mixamo asset
+  ; BABYLON.SceneLoader.Append("./", "duck.gltf", scene, function (scene) {})
+  ;   // do something with the scene
+  ; (.Append js/BABYLON.SceneLoader "models/jasper/" "jasper.babylon" scene (fn [] (println "jasper loaded")))
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/" "jasper.babylon" scene)
+  (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene
+  ;; Note: scaling down in blender seems to have no effect when importing into babylon
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_small/" "jasper_small.babylon" scene)
+               (fn [new-meshes]
+                 (println "new-meshes=" new-meshes)
+                 (println "count=" (count new-meshes))
+                 ; (doall (map #(.-scaling %1) new-meshes))
+                 ; (let [result (map #(.-scaling %1) new-meshes)]
+                 ;   (println "result=" result))
+                 ; (set! dummy (map #(set! (.-scaling %1) (js/BABYLON.Vector3. 0.1 0.1 0.1)) new-meshes))
+                 (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
+                 ; (println "dummy=" dummy)
+                 (let [result (map #(.-scaling %1) new-meshes)]
+                   (println "result2=" result))
+                 ;(set! dummy (map #(println "mesh=" %1) (seq new-meshes)))
+                 ; (println "dummy=" dummy)
+                 ; (map dummy-fn (seq new-meshes))
+                 ; (set! dummy (reduce + [1 2 3]))
+                 ; (reduce #(println "e=" %1 "e2=" %2) [1 2 3])
+                 (println "end of anon, dummy=" dummy)))
+                 ; (loop)))
+  ; (.Append js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" scene (fn [] (println "jasper_small loaded")))
+  ; (.Load js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" (fn [] (println "jasper_small loaded")))
   (if (not base/use-xr)
     (do
       (println "now setting up vr")
       (set! vrHelper (.createDefaultVRExperience scene (js-obj "useXR" false)))
+      ; var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), scene);
       (set! camera (.-webVRCamera vrHelper))
+      (set! (.-id camera) "main-camera")
       (controller/init scene vrHelper camera)
       (controller/setup-controller-handlers vrHelper)
       (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 10 "height" 10) scene))
@@ -88,6 +130,12 @@
     (do
       (println "now setting up xr")
       ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -10) scene))
+      ; (set! camera (js/BABYLON.UniversalCamera. "uni-cam" (js/BABYLON.Vector3. 0 5 -10) scene))
+      (set! camera (js/BABYLON.UniversalCamera. "uni-cam" camera-init-pos scene))
+      ; (println "camera pos (pre)=" (.-position camera))
+      (set! (.-z (.-position camera)) (* -5 base/scale-factor))
+      ; (println "camera pos (post)=" (.-position camera))
+      ; (set! (.-id camera) "main-camera")
       ; (set! xr (.createDefaultXRExperienceAsync scene))
       (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
       ; (-> (.createDefaultXRExperienceAsync scene (js-obj))
@@ -133,7 +181,8 @@
   ;; svale adjustment
   ;; Note: need if not using webxr (browser) extension, comment out if you are.
   (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
-  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
+  ; (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
+  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 150 -13) scene))
   (.setEnabled light1 true)
   ;; need to have obj-moving for some reason
   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
@@ -210,14 +259,14 @@
       ; (= type js/BABYLON.PointerEventTypes.POINTERPICK)
       (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
       (do
-        (println "POINTER DOWN, picked-mesh=" picked-mesh)
+        ; (println "POINTER DOWN, picked-mesh=" picked-mesh)
         ; (js-debugger)
         (re-frame/dispatch [:mesh-selected picked-mesh])
         ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
         (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)]))
       (= type js/BABYLON.PointerEventTypes.POINTERUP)
       (do
-        (println "POINTER UP, picked-mesh=" picked-mesh)
+        ; (println "POINTER UP, picked-mesh=" picked-mesh)
         ; (js-debugger)
         ; (re-frame/dispatch [:mesh-selected picked-mesh])
         ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
@@ -225,33 +274,6 @@
       ; (= type js/BABYLON.PointerEventTypes.POINTERMOVE) (do (println "POINTER MOVE"))
       ; :else (println "cond-CATCHALL")
       :else nil)))
-  ;(case (.-type pointer-info)
-  ;   js/BABYLON.PointerEventTypes.POINTERDOWN (do (println "POINTER DOWN"))
-  ;   js/BABYLON.PointerEventTypes.POINTERPICK (do (println "POINTER PICK"))
-  ;   (println "CATCHALL: pointer-info.type=" (.-type pointer-info))))
 
-; scene.onPointerObservable.add((pointerInfo) => {})
-;     switch (pointerInfo.type) {}
-;         case BABYLON.PointerEventTypes.POINTERDOWN:
-;             console.log("POINTER DOWN");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERUP:
-;             console.log("POINTER UP");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERMOVE:
-;             console.log("POINTER MOVE");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERWHEEL:
-;             console.log("POINTER WHEEL");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERPICK:
-;             console.log("POINTER PICK");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERTAP:
-;             console.log("POINTER TAP");
-;             break;
-;         case BABYLON.PointerEventTypes.POINTERDOUBLETAP:
-;             console.log("POINTER DOUBLE-TAP");
-;             break;
-;
-;
+(defn set-scaling [mesh, s]
+  (set! (.-scaling mesh) (js/BABYLON.Vector3. s s s)))

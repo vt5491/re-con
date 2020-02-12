@@ -16,10 +16,10 @@
 (def status-panel)
 (def mesh-button)
 ;; constants
-(def ^:const panel-width 2)
-(def ^:const panel-height 2)
-(def ^:const panel-depth 0.1)
-(def ^:const panel-spacing 0.1)
+(def ^:const panel-width (* 2 base/scale-factor))
+(def ^:const panel-height (* 2 base/scale-factor))
+(def ^:const panel-depth (* 0.1 base/scale-factor))
+(def ^:const panel-spacing (* 0.1 base/scale-factor))
 
 (def ^:const panel-array-width 4)
 (def ^:const panel-array-height 4)

@@ -4,6 +4,7 @@
   (:require [re-frame.core :as re-frame]
             ; [re-con.main-scene :as main-scene]; note: generates circular dependency))
             [re-con.main-scene :as main-scene]
+            [re-con.base :as base]
             [re-con.utils :as utils]))
             ; [re-con.db :as db]))
 
@@ -14,6 +15,7 @@
 (def right-ctrl-xr)
 (def main-trigger)
 (def grip)
+(def x-btn)
 (def left-ray)
 (def right-ray)
 (def is-gripping false)
@@ -22,8 +24,11 @@
 (def last-player-pos)
 (def last-grip-vel)
 (def last-grip-time)
-(def grip-factor 1.9)
-(def GRIP_DECELERATION_INT 1000)
+; (def grip-factor 1.9) ;; probably the best
+; (def grip-factor 2.1) ;; good for scale-factor=100
+(def grip-factor (if (>= base/scale-factor 100) 2.1 1.9))
+; (def GRIP_DECELERATION_INT 1000)
+(def GRIP_DECELERATION_INT 1500)
 
 (declare trigger-handler-xr)
 (declare grip-handler-xr)
@@ -32,13 +37,15 @@
 (declare left-trigger-handler)
 (declare right-trigger-handler)
 (declare pointer-collider-handler)
+(declare x-btn-handler)
 
 ; const ray = getWorldPointerRayToRef(controller);
 (defn init [tgt-scene xr-helper]
   (println "controller-xr.init entered")
   (set! scene tgt-scene)
   (set! xr xr-helper)
-  (set! last-grip-time 0)
+  ; (set! last-grip-time 0)
+  (set! last-grip-time (.now js/Date))
   (set! last-grip-vel (js/BABYLON.Vector3. 0 0 0))
   (set! last-player-pos (.-position main-scene/camera)))
   ; (set! left-ray main-scene/ray))
@@ -50,8 +57,11 @@
 ;; xr.input.controllers[0 or 1]
 (defn ctrl-added [xr-controller]
   (println "controller-xr.ctrl-added: xr-controller.uniqueId=" (.-uniqueId xr-controller) ",handedness=" (get-ctrl-handedness xr-controller))
+  ; (js-debugger)
+  (println "controller components=" (-> xr-controller (.-gamepadController) (.getComponentTypes)))
   ; const mainTrigger = xrController.motionController.getComponent(WebXRControllerComponent.TRIGGER);
-  (let [handedness (get-ctrl-handedness xr-controller)]
+  (let [handedness (get-ctrl-handedness xr-controller)
+        gamepad-ctrl (.-gamepadController xr-controller)]
     (when (= handedness :left)
       (set! left-ctrl-xr xr-controller))
       ; (set! left-ray (.getWorldPointerRayToRef xr-controller)))
@@ -73,7 +83,10 @@
       (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))
     (set! grip (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.SQUEEZE)))
     (when grip
-       (-> grip (.-onButtonStateChanged) (.add grip-handler-xr)))))
+       (-> grip (.-onButtonStateChanged) (.add grip-handler-xr)))
+    (set! x-btn (.getComponent gamepad-ctrl "a-button"))
+    (when x-btn
+      (-> x-btn (.-onButtonStateChanged) (.add x-btn-handler)))))
 
       ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler))
       ; (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
@@ -87,13 +100,13 @@
       ; (re-frame/dispatch [:attach-ray handedness main-scene/ray-helper]))))
 
 (defn trigger-handler-xr [trigger-state]
-  (println "trigger-handler-xr: trigger fired, pressed=" (.-pressed trigger-state))
+  ; (println "trigger-handler-xr: trigger fired, pressed=" (.-pressed trigger-state))
   ; (js-debugger))
   ; (re-frame/dispatch [:trigger-handler {:pressed (.-pressed trigger-state)}])
   (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))]))
 
 (defn grip-handler-xr [grip-state]
-  (println "grip-handler-xr: grip fired, grip-state=" grip-state)
+  ; (println "grip-handler-xr: grip fired, grip-state=" grip-state)
   (if (.-pressed grip-state)
     (when (and left-ctrl-xr (not is-gripping))
       ; (js-debugger))))
@@ -101,7 +114,22 @@
       (set! is-gripping true)
       (set! player-start-pos (.-position main-scene/camera))
       (set! last-grip-time (.now js/Date)))
-    (set! is-gripping false)))
+    (if is-gripping
+      (do
+        ;; transition from gripping to non-gripping
+        (set! is-gripping false)
+        (set! last-grip-time (.now js/Date))
+        ; (println "last-grip-vel=" last-grip-vel)
+        ; (println "last-grip-vel theta=" (-> (js/Math.atan (/ (.-y last-grip-vel) (.-x last-grip-vel))) (* (/ 180 js/Math.PI))))
+        ; (set! last-grip-vel (.subtract (.-position main-scene/camera) grip-start-pos)))
+        ; (let [normal-vel (.normalize (.subtract (.-position main-scene/camera) grip-start-pos))])
+        ;; secret for good coasting velocity is to go off camera deltas not grip deltas.
+        (let [normal-vel (.normalize (.subtract (.-position main-scene/camera) player-start-pos))
+        ; (let [normal-vel (.normalize (.subtract grip-start-pos (.-position main-scene/camera)))
+              mag (.length last-grip-vel)]
+          (set! last-grip-vel (.multiplyByFloats normal-vel mag mag mag))))
+      ;; non-transitioning non-gripping
+      (set! is-gripping false))))
 
 (defn left-trigger-handler []
   (println "left trigger fired"))
@@ -111,6 +139,11 @@
 
 (defn pointer-collider-handler []
   (println "pointer collider detected"))
+
+(defn x-btn-handler [state]
+  (when (.-pressed state)
+    (println "x-btn pressed")
+    (set! (.-position main-scene/camera) main-scene/camera-init-pos)))
 
 ;; determine if id of the ctrl is "left" or "right"
 (defn get-ctrl-handedness [ctrl]
@@ -140,7 +173,8 @@
         (set! (.-position main-scene/camera) new-pos)
         (set! last-grip-vel (.subtract new-pos last-player-pos))
         (set! last-player-pos (.-position main-scene/camera)))
-      (and (not is-gripping) last-grip-vel (< (- (.now js/Date)  last-grip-time) 1000))
+      ; (and (not is-gripping) last-grip-vel (< (- (.now js/Date)  last-grip-time) 1000))
+      (and (not is-gripping) last-grip-vel (< (- (.now js/Date)  last-grip-time) GRIP_DECELERATION_INT))
       (let [delta-time (- (.now js/Date) last-grip-time)
             vel-strength (* 5.6 (- 1.0 (/ delta-time GRIP_DECELERATION_INT)))
             delta-pos (.multiplyByFloats last-grip-vel vel-strength vel-strength vel-strength)]
