@@ -13,7 +13,13 @@
    [promesa.core :as p]
    [components]
    [systems]
-   [ecsy :refer (World System)])) ;; works
+   [ecsy :refer (World System)] ;; works
+   [babylonjs-materials :as bjs-m]
+   ; ["babylonjs-loaders" :as bjs-l]
+   ;; Note: the namespace for babylonjs-loaders is still "js/BABYLON"
+   ;; However, we still need to reference the module here so the additional method
+   ;; in fact get appended to the "js/BABYLON" namespace (so don't comment this line out)
+   [babylonjs-loaders :as bjs-l]))
    ; [async-await.core :refer [async await]]))
    ; [promesa.async-cljs :refer-macros [async]]))
    ; [clojure.core.async :as async :refer :all]))
@@ -50,7 +56,13 @@
 (def ray-helper)
 (def features-manager)
 (def dummy)
-(def model-scale-factor 0.02)
+(def model-scale-factor 0.01)
+; (def model-scale-factor 1.00)
+(def skeleton)
+(def dribble-range)
+(def defeated-range)
+(def idle-range)
+(def walking-range)
 
 (declare init-part-2)
 (declare init-basic-2-2)
@@ -72,7 +84,6 @@
 
 (defn init []
   (println "now in init-scene")
-  ; BABYLON.Animation.AllowMatricesInterpolation = true;
   ;; following line necessary for mixamo animations.
   (set! js/BABYLON.Animation.AllowMatricesInterpolation true)
   (set! canvas (-> js/document (.getElementById "renderCanvas")))
@@ -89,11 +100,17 @@
   ; BABYLON.SceneLoader.Append("./", "duck.gltf", scene, function (scene) {})
   ;   // do something with the scene
   ; (.Append js/BABYLON.SceneLoader "models/jasper/" "jasper.babylon" scene (fn [] (println "jasper loaded")))
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/" "jasper.babylon" scene)
-  (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_2/" "jasper_2.babylon" scene
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene)
+  ; (.ImportMesh bjs-l/glTF2FileLoader "" "models/dummy_glb/" "dummy.glb" scene)
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy_glb/" "dummy.glb" scene) ;;works
+  (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene 
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/" "ybot.babylon" scene
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.glb" scene)
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.gltf" scene
   ;; Note: scaling down in blender seems to have no effect when importing into babylon
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_small/" "jasper_small.babylon" scene)
-               (fn [new-meshes]
+               (fn [new-meshes particle-systems skeletons]
                  (println "new-meshes=" new-meshes)
                  (println "count=" (count new-meshes))
                  ; (doall (map #(.-scaling %1) new-meshes))
@@ -101,18 +118,46 @@
                  ;   (println "result=" result))
                  ; (set! dummy (map #(set! (.-scaling %1) (js/BABYLON.Vector3. 0.1 0.1 0.1)) new-meshes))
                  (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
+                 (set! skeleton (nth skeletons 0))
+                 ; (js-debugger)
+                 ; (println "available animations=" (.-animations skeleton))
+                 (set! (.-animationPropertiesOverride skeleton) (js/BABYLON.AnimationPropertiesOverride.))
+                 (let [animationPropertiesOverride (.-animationPropertiesOverride skeleton)]
+                   (set! (.-enableBlending animationPropertiesOverride) true)
+                   (set! (.-blendingSpeed animationPropertiesOverride) 0.05)
+                   (set! (.-loopMode animationPropertiesOverride) 1))
+                 ; (set! dribble-range (.getAnimationRange skeleton "dribble"))
+                 (set! defeated-range (.getAnimationRange skeleton "defeated"))
+                 ; (set! idle-range (.getAnimationRange skeleton "idle"))
+                 ; (set! walking-range (.getAnimationRange skeleton "walking"))
+                 (println "animation range= from:" (.-from defeated-range) ", to:" (.-to defeated-range))
+                 ; (println "animation range= from:" (.-from walking-range) ", to:" (.-to walking-range))
+                 ; (js-debugger)
+                 ; (.beginAnimation scene skeleton (.-from dribble-range) (.-to dribble-range) true)
+                 (.beginAnimation scene skeleton (.-from defeated-range) (.-to defeated-range) true)))
+                 ; (.beginAnimation scene skeleton (.-from walking-range) (.-to walking-range) true)))
+                 ; (.beginAnimation scene skeleton (.-from idle-range) (.-to idle-range) true)))
+     ;             // ROBOT)
+     ; skeleton.animationPropertiesOverride = new BABYLON.AnimationPropertiesOverride();
+     ; skeleton.animationPropertiesOverride.enableBlending = true;
+     ; skeleton.animationPropertiesOverride.blendingSpeed = 0.05 ;
+     ; skeleton.animationPropertiesOverride.loopMode = 1);
                  ; (println "dummy=" dummy)
-                 (let [result (map #(.-scaling %1) new-meshes)]
-                   (println "result2=" result))
+                 ; (let [result (map #(.-scaling %1) new-meshes)]
+                 ;   (println "result2=" result))
                  ;(set! dummy (map #(println "mesh=" %1) (seq new-meshes)))
                  ; (println "dummy=" dummy)
                  ; (map dummy-fn (seq new-meshes))
                  ; (set! dummy (reduce + [1 2 3]))
                  ; (reduce #(println "e=" %1 "e2=" %2) [1 2 3])
-                 (println "end of anon, dummy=" dummy)))
+                 ; (println "end of anon, dummy=" dummy)))
                  ; (loop)))
   ; (.Append js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" scene (fn [] (println "jasper_small loaded")))
   ; (.Load js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" (fn [] (println "jasper_small loaded")))
+  (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 10 "height" 10) scene))
+  ; (set! (.-material ground) (js/BABYLON.GridMaterial. "mat" scene))
+  (set! (.-material ground) (bjs-m/GridMaterial. "mat" scene))
+  ; (set! (.-material ground) (bjs-m/SimpleMaterial. "mat" scene))
   (if (not base/use-xr)
     (do
       (println "now setting up vr")
@@ -122,7 +167,7 @@
       (set! (.-id camera) "main-camera")
       (controller/init scene vrHelper camera)
       (controller/setup-controller-handlers vrHelper)
-      (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 10 "height" 10) scene))
+      ; var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1000, height: 1000 }, scene);
       (.enableTeleportation vrHelper (js-obj "floorMeshName" "ground"))
       (.enableInteractions vrHelper)
       (js/setupControllers vrHelper)
@@ -133,11 +178,14 @@
       ; (set! camera (js/BABYLON.UniversalCamera. "uni-cam" (js/BABYLON.Vector3. 0 5 -10) scene))
       (set! camera (js/BABYLON.UniversalCamera. "uni-cam" camera-init-pos scene))
       ; (println "camera pos (pre)=" (.-position camera))
+      (set! (.-y (.-position camera)) 2)
       (set! (.-z (.-position camera)) (* -5 base/scale-factor))
       ; (println "camera pos (post)=" (.-position camera))
       ; (set! (.-id camera) "main-camera")
       ; (set! xr (.createDefaultXRExperienceAsync scene))
       (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
+      ; (-> (.createDefaultXRExperienceAsync scene (js-obj))
+      ; (-> (.createDefaultXRExperienceAsync scene (js-obj (.-floorMeshes js/BABYLON.WebXRDefaultExperienceOptions) (array ground)))
       ; (-> (.createDefaultXRExperienceAsync scene (js-obj))
           (p/then
            (fn [x] (println "xr-x=" x ",scene=" scene)
@@ -181,8 +229,8 @@
   ;; svale adjustment
   ;; Note: need if not using webxr (browser) extension, comment out if you are.
   (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
-  ; (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
-  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 150 -13) scene))
+  (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
+  ; (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 150 -13) scene))
   (.setEnabled light1 true)
   ;; need to have obj-moving for some reason
   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
