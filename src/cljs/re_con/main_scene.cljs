@@ -1,12 +1,14 @@
 ;; main_scene should reference few and be accessible by many
 (ns re-con.main-scene
+  (:require-macros [re-con.macros :as macros])
   (:require
    [re-frame.core :as re-frame]
     ;; actually don't need to require babylonjs as it's in the js namespace already.
    ; [babylonjs]
    ; [promesa.core :as p :refer-macros [async]]
-   ; [re-con.utils as utils]))
    [re-con.base :as base]
+   [re-con.utils :as utils]
+   ; [re-con.macros :as macros]
    [re-con.controller :as controller]
    ; [re-con.controller-xr :as ctrl-xr]
    [re-con.test-scene-ecsy :as test-scene-ecsy]
@@ -73,8 +75,6 @@
 
 (defn mesh-selected [])
 
-; (defn dummy-fn [m]
-;   (println "m=" m))
 (defn dummy-fn []
   (println "m="))
 
@@ -104,7 +104,7 @@
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene)
   ; (.ImportMesh bjs-l/glTF2FileLoader "" "models/dummy_glb/" "dummy.glb" scene)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy_glb/" "dummy.glb" scene) ;;works
-  (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene 
+  (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/" "ybot.babylon" scene
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.glb" scene)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.gltf" scene
@@ -125,16 +125,26 @@
                  (let [animationPropertiesOverride (.-animationPropertiesOverride skeleton)]
                    (set! (.-enableBlending animationPropertiesOverride) true)
                    (set! (.-blendingSpeed animationPropertiesOverride) 0.05)
-                   (set! (.-loopMode animationPropertiesOverride) 1))
+                   ; (set! (.-loopMode animationPropertiesOverride) 1))
+                   (set! (.-loopMode animationPropertiesOverride) 0))
                  ; (set! dribble-range (.getAnimationRange skeleton "dribble"))
-                 (set! defeated-range (.getAnimationRange skeleton "defeated"))
+                 ; (let [ar (.getAnimationRanges skeleton)]
+                 ;   (js-debugger))
+                 (println "main_scene: animation ranges=" (.getAnimationRanges skeleton))
+                 (println "main_scene: animation groups=" (.-animationGroups scene))
+                 ; (.stopAnimation scene skeleton)))
+                 ;; comment out the following or specify ".start" to start the animation
+                 (-> (nth (.-animationGroups scene) 0) .stop)))
+                 ; (set! defeated-range (.getAnimationRange skeleton "defeated"))
                  ; (set! idle-range (.getAnimationRange skeleton "idle"))
                  ; (set! walking-range (.getAnimationRange skeleton "walking"))
-                 (println "animation range= from:" (.-from defeated-range) ", to:" (.-to defeated-range))
+                 ; (println "animation range= from:" (.-from defeated-range) ", to:" (.-to defeated-range))
                  ; (println "animation range= from:" (.-from walking-range) ", to:" (.-to walking-range))
                  ; (js-debugger)
                  ; (.beginAnimation scene skeleton (.-from dribble-range) (.-to dribble-range) true)
-                 (.beginAnimation scene skeleton (.-from defeated-range) (.-to defeated-range) true)))
+                 ; (.beginAnimation scene skeleton (.-from defeated-range) (.-to defeated-range) false)))
+                 ; (.beginAnimation scene skeleton (.-from 0) (.-to 0) false 2.0)))
+                 ; (.beginAnimation skeleton)))
                  ; (.beginAnimation scene skeleton (.-from walking-range) (.-to walking-range) true)))
                  ; (.beginAnimation scene skeleton (.-from idle-range) (.-to idle-range) true)))
      ;             // ROBOT)
@@ -294,34 +304,47 @@
   ; (set! picking-ray
   ;   (.createPickingRay scene (.-pointerX scene) (.-pointerY scene) (.Identity js/BABYLON.Matrix) (.-activeCamera scene)))
 
+; this sets up the pointer hooks for xr support
 (defn pointer-handler [pointer-info]
-  (let [type (.-type pointer-info)
-        ; picked-mesh (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id))
-        picked-mesh (if (and
-                         (.-pickInfo pointer-info)
-                         (-> pointer-info (.-pickInfo) (.-pickedMesh)))
-                         ; (-> pointer-info (.-pickInfo) (.-pickedMesh) (.-id)))
-                      (-> pointer-info (.-pickInfo) (.-pickedMesh)))]
-    (cond
-      ; (= type js/BABYLON.PointerEventTypes.POINTERDOWN) (do (println "POINTER DOWN, picked-mesh=" (.-id picked-mesh)))
+  ; (macros/when-let* [a true b true] 7)
+  ; (utils/kwd-to-int :7)
+                     ; (let [type (.-type pointer-info)
+  (macros/when-let* [type (.-type pointer-info)
+                     ; picked-mesh (if (and (.-pickInfo pointer-info) (-> pointer-info (.-pickInfo) (.-pickedMesh))))
+                     ;  (-> pointer-info (.-pickInfo) (.-pickedMesh))]
+                     picked-mesh (-> pointer-info (.-pickInfo) (.-pickedMesh))]
+      ; (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
+      (println "POINTER DOWN, picked-mesh.id=" (.-id picked-mesh) ", picked-mesh=" picked-mesh ",
+      type=" type ",POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
       ; (= type js/BABYLON.PointerEventTypes.POINTERPICK)
-      (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
-      (do
-        ; (println "POINTER DOWN, picked-mesh=" picked-mesh)
-        ; (js-debugger)
-        (re-frame/dispatch [:mesh-selected picked-mesh])
-        ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
-        (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)]))
-      (= type js/BABYLON.PointerEventTypes.POINTERUP)
-      (do
-        ; (println "POINTER UP, picked-mesh=" picked-mesh)
-        ; (js-debugger)
-        ; (re-frame/dispatch [:mesh-selected picked-mesh])
-        ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
-        (re-frame/dispatch [:trigger-handler (js-obj "pressed" false)]))
-      ; (= type js/BABYLON.PointerEventTypes.POINTERMOVE) (do (println "POINTER MOVE"))
-      ; :else (println "cond-CATCHALL")
-      :else nil)))
+    (when (re-matches #"panel-\d+" (.-name picked-mesh))
+      (cond
+        (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
+        (do
+          ; (println "pointer-handler: POINTER DOWN, picked-mesh=" picked-mesh)
+          ; (js-debugger)
+          (re-frame/dispatch [:mesh-selected picked-mesh])
+          ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
+          (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)]))
+        (= type js/BABYLON.PointerEventTypes.POINTERUP)
+        (do
+          (re-frame/dispatch [:trigger-handler (js-obj "pressed" false)]))
+        :else nil))
+    ; (when (re-matches #"game-tile.*" (.-name picked-mesh))
+    ;   (println "game-tile selected")
+    ;   (cond
+    ;     (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
+    ;     (do
+    ;       (println "about to dispatch game-board-trigger-handler")
+    ;       (re-frame/dispatch [:game-board-trigger-handler (js-obj "pressed" true)]))))
+    (when (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
+      (cond
+        (re-matches #"game-tile.*" (.-name picked-mesh))
+        (do
+          (println "game-tile selected")
+          (println "about to dispatch game-board-trigger-handler")
+          (re-frame/dispatch [:game-board-trigger-handler (js-obj "pressed" true)]))))))
+
 
 (defn set-scaling [mesh, s]
   (set! (.-scaling mesh) (js/BABYLON.Vector3. s s s)))

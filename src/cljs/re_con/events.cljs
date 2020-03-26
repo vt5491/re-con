@@ -8,6 +8,7 @@
    [re-con.scenes.con-panel-scene :as cp-scene]
    [re-con.cell :as cell]
    [re-con.board :as board]
+   [re-con.game-board :as game-board]
    [re-con.game :as game]
    [re-con.controller-xr :as ctrl-xr]))
 
@@ -89,6 +90,7 @@
 ;    (assoc db :trigger-pressed (.-pressed stateObject))))
 
 ;; note: main trigger routine
+;;TODO: rename to something like ':panel-trigger-handler'
 (re-frame/reg-event-fx
  :trigger-handler
  (fn [{:keys [db]} [_ stateObject]]
@@ -119,6 +121,12 @@
     ; (if true
     ;   (:dispatch-n (list [:abc "mj"] [:abc-2 "angus young"])))}))
 
+(re-frame/reg-event-db
+ :game-board-trigger-handler
+ (fn [db [_]]
+   ;;non-rf side effect
+   (game-board/abc)
+   db))
 ; (re-frame/reg-event-db
 ;  :toggle-trigger
 ;  {:trigger-pressed true})

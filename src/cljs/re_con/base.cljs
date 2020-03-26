@@ -5,6 +5,7 @@
   (:require
    [re-frame.core :as re-frame]))
 
+(def ONE-DEG (/ Math/PI 180.0))
 (def board-row-cnt 4)
 (def board-col-cnt 4)
 

@@ -162,10 +162,6 @@
   (let [scene main-scene/scene
         status-pnl-height (* panel-height 1.5)
         status-pnl-width (* panel-width 6)
-        ; status-pnl-pixel-height 25
-        ; status-pnl-pixel-width 51
-        ; status-pnl-pixel-height 504
-        ; status-pnl-pixel-width 1512
         status-pnl-pixel-height 256
         status-pnl-pixel-width 1024
         status-pnl
@@ -228,6 +224,20 @@
 ;       (set! (.-text  text) "hello")
 ;       (set! (.-color text) "green")
 ;       (set! (.-content mesh) text))))
+(defn init-game-tiles []
+  (let [tile-height (* panel-height 1.0)
+        tile-width (* panel-width 1)
+        tile (js/BABYLON.MeshBuilder.CreateBox.
+              "game-tile"
+              (js-obj "height" tile-height
+                      "width" tile-width
+                      "depth" 0.1)
+              main-scene/scene)
+        rot (.-rotation tile)]
+    (set! (.-position tile) (js/BABYLON.Vector3. (- panel-width) 0  panel-width))
+    ; (set! (.-x (.-rotation tile)))
+    (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
+
 
 ;; read-only on db
 (defn init-con-panel-scene [db]
@@ -240,7 +250,8 @@
   (set! panels (init-panels db))
   ; (println "panels count=" (count panels)))
   ; (load-rebus-imgs db))
-  (init-status-panel))
+  (init-status-panel)
+  (init-game-tiles))
   ; (init-3d-gui))
   ; (init-3d-gui-2))
 
@@ -249,17 +260,9 @@
   (let [panel (-> main-scene/scene (.getMeshByName (str "panel-" index)))]
     (set! (.-material panel) mat)))
 
-; (defn show-panel-rebus [mat]
-;   (let [panel (->)]))
-
 (defn show-full-rebus [db]
-  ; (show-panel-rebus 0 (db :rebus-mat 0)))
-  ; (show-panel-rebus 5 (get (nth (db :board-cells) 5) :rebus-mat))
-  ; (show-panel-rebus 5 (get (nth (db :board-cells) 5) :rebus-mat))
-  ; (map #(show-panel-rebus % (% :rebus-mat)) (map-indexed vector (db :board-cells))))
   (doseq [[i cell] (map-indexed vector (db :board-cells))]
     (show-panel-rebus i (cell :rebus-mat))))
-  ; (show-panel-rebus 5 main-scene/blueMaterial))
 
 
 (defn show-full-rebus-2 [db]
@@ -270,7 +273,3 @@
 
 (defn update-status-panel [msg]
   (.drawText (-> status-panel .-material .-diffuseTexture) msg 100 200 "200px green" "white" "blue" true true))
-
-;
-; (defn mesh-collider-handler []
-;   (println "con_panel_scene: mesh collision detected"))

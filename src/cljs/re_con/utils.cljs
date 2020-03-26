@@ -132,3 +132,10 @@
 ;;defunct
 (defn get-right-xr-laser-pointer [scene]
   (get-xr-laser-pointer :right scene))
+
+;; not-defunct
+; (defmacro when-let*
+;           [bindings & body]
+;           `(let ~bindings
+;                 (if (and ~@(take-nth 2 bindings))
+;                   (do ~@body))))
