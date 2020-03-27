@@ -186,25 +186,24 @@
       (println "now setting up xr")
       ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -10) scene))
       ; (set! camera (js/BABYLON.UniversalCamera. "uni-cam" (js/BABYLON.Vector3. 0 5 -10) scene))
+      ;; Note: this is not needed as we set camera later in the promise handler
+      ;; Note: no, we still need this camera as it's the camera that used prior to clicking on "enter vr"
       (set! camera (js/BABYLON.UniversalCamera. "uni-cam" camera-init-pos scene))
       ; (println "camera pos (pre)=" (.-position camera))
-      (set! (.-y (.-position camera)) 2)
-      (set! (.-z (.-position camera)) (* -5 base/scale-factor))
+      (set! (.-y (.-position camera)) 3)
+      ; (set! (.-y (.-position camera)) (.-y camera-init-pos))
+      (set! (.-z (.-position camera)) (* -7 base/scale-factor))
       ; (println "camera pos (post)=" (.-position camera))
       ; (set! (.-id camera) "main-camera")
       ; (set! xr (.createDefaultXRExperienceAsync scene))
       (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
-      ; (-> (.createDefaultXRExperienceAsync scene (js-obj))
-      ; (-> (.createDefaultXRExperienceAsync scene (js-obj (.-floorMeshes js/BABYLON.WebXRDefaultExperienceOptions) (array ground)))
-      ; (-> (.createDefaultXRExperienceAsync scene (js-obj))
           (p/then
-           (fn [x] (println "xr-x=" x ",scene=" scene)
+           (fn [x]
+             ;; note: x is a WebXRDefaultExperience
+             (println "xr-x=" x ",scene=" scene)
              (set! xr x)
-             ; (set! (.-pointerSelection xr) false)
-             ; (ctrl-xr/setup-xr-ctrl-cbs xr)
              (re-frame/dispatch [:setup-xr-ctrl-cbs xr])
-             ; (js-debugger)
-             ; (js/BABYLON.WebXRFeaturesManager.disableFeature "xr-controller-pointer-selection")
+             ;; Note: baseExperience is of type WebXRExperienceHelper
              (set! features-manager (-> xr (.-baseExperience) (.-featuresManager)))
              ; (.disableFeature features-manager "xr-controller-pointer-selection")
              ; (.enableFeature features-manager "xr-controller-pointer-selection")
@@ -220,6 +219,7 @@
              (set! (.-position tmp-obj) (js/BABYLON.Vector3. 2 0.5 0))
              (set! (.-material tmp-obj) greenMaterial)
              (set! camera (-> x (.-baseExperience) (.-camera)))
+             (set! (.-position camera) camera-init-pos)
              ; (ctrl-xr/init scene xr)
              (re-frame/dispatch [:init-xr xr])
              (set! ray (js/BABYLON.Ray.))
@@ -227,11 +227,19 @@
              ; (set! ctrl-xr/left-ray ray)
              (.attachToMesh ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20)
              (.show ray-helper scene js/BABYLON.Color3. 255 0 0)
+             (-> xr (.-baseExperience) (.-onStateChangedObservable) (.add (fn [state]
+                                                                            (println "state=" state)
+                                                                            (when (= state js/BABYLON.WebXRState.IN_XR)
+                                                                              (println "state: in xr")
+                                                                              (println "state: old camera pos=" (.-position camera) ",camera-init-pos=" camera-init-pos)
+                                                                              ;;TODO: figure out why camera-init-pos not properly set here
+                                                                              ; (set! (.-position camera) camera-init-pos)
+                                                                              (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
+                                                                              (println "state: new camera pos=" (.-position camera))))))
+
              (init-part-2)))))) ;; no work if no obj-moving in stanza
              ; (init-basic-2-2))))))
   (println "at end of init"))
-                                                     ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -20) scene)))))))
-                                                     ; (set! camera (-> x (.-baseExperience) (.-camera))))))))
 
 
 (defn init-part-2 []
@@ -240,7 +248,6 @@
   ;; Note: need if not using webxr (browser) extension, comment out if you are.
   (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
-  ; (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 150 -13) scene))
   (.setEnabled light1 true)
   ;; need to have obj-moving for some reason
   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
@@ -249,12 +256,7 @@
                             "width" 0.2
                             "depth" 0.1)
                     scene))
-  ; (let [mat (js/BABYLON.StandardMaterial.)]
-  ;   (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
-  ;   (set! (.-material obj-moving) mat))
-  ; (init-basic-2-2))
   (.attachControl camera canvas false)
-  ; (println "abc=" (-> js/BABYLON.Quaternion (.FromEulerAngles 0 1 0)))
   (set! imgMat (js/BABYLON.StandardMaterial. "imgMat" scene))
   (set! assetsManager (js/BABYLON.AssetsManager. scene))
   (set! textureTask (.addTextureTask assetsManager "load-texture" "imgs/burj_al_arab.jpg"))
@@ -265,12 +267,6 @@
   (.setEnabled light1 true)
   (if base/use-xr
     (-> (.-onPointerObservable scene) (.add pointer-handler))))
-  ; (set! gui-3d-manager (js/BABYLON.GUI.GUI3DManager. scene)))
-  ; (.runRenderLoop engine (fn []
-  ;                          (let [time (-> (js/performance.now) (/ 1000))
-  ;                                delta (- time last-time)]
-  ;                            (set! last-time time)
-  ;                            (.render scene)))))
 
 (defn init-panel-scene[]
   (set! panel (js/BABYLON.MeshBuilder.CreateBox. "panel"
@@ -343,7 +339,7 @@
         (do
           (println "game-tile selected")
           (println "about to dispatch game-board-trigger-handler")
-          (re-frame/dispatch [:game-board-trigger-handler (js-obj "pressed" true)]))))))
+          (re-frame/dispatch [:game-board-trigger-handler picked-mesh]))))))
 
 
 (defn set-scaling [mesh, s]

@@ -97,14 +97,6 @@
    (let [board-status (db :board-status)
          first-pick (get board-status :first-pick)
          second-pick (get board-status :second-pick)]
-     ; (cond (or (= first-pick nil) (= second-pick nil))
-     ;   (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-     ;     ; side effect
-     ;     (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))))
-         ; and fire a cell-picked event
-         ; (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
-   ; {
-    ; (js-debugger)
     (println ":trigger-handler: .-pressed stateObject=" (.-pressed stateObject) ", selected-mesh=" (db :selected-mesh))
     (merge {:db (assoc db :trigger-pressed (.-pressed stateObject))}
     ; (merge {:db (assoc db :trigger-pressed true)}
@@ -115,17 +107,12 @@
                                      (not (:trigger-pressed db)))]
              {:dispatch-n (list [:show-panel-face]
                                 [:cell-picked (db :selected-mesh)])})))))
-           ; (when-let [val (get {:a 7} :a)])
-           ; (when-let [val true]
-           ;   {:dispatch-n (list [:abc "mj"] [:abc-2 "angus young"])})))))
-    ; (if true
-    ;   (:dispatch-n (list [:abc "mj"] [:abc-2 "angus young"])))}))
 
 (re-frame/reg-event-db
  :game-board-trigger-handler
- (fn [db [_]]
+ (fn [db [_ picked-mesh]]
    ;;non-rf side effect
-   (game-board/abc)
+   (game-board/tile-selected picked-mesh)
    db))
 ; (re-frame/reg-event-db
 ;  :toggle-trigger
@@ -267,7 +254,7 @@
 
 
 ;;
-;; board level
+;; status board level
 ;;
 (re-frame/reg-event-db
  :init-board-status
@@ -288,6 +275,16 @@
    ; (assoc-in db [(nth (db :board-cells) match-index) :status] :matched)
    (println "cell-matched: index=" match-index ", status=" (get-in db [:board-cells match-index :status]))
    (assoc-in db [:board-cells match-index :status] :matched)))
+
+;;
+;; game board level
+;;
+(re-frame/reg-event-db
+ :init-game-board
+ (fn [db [_]]
+   ; non-rf side effect
+   (game-board/init-game-tiles)
+   db))
 
 ;; xr events
 ;; intermediary between a babylon.js 'onControllerAddedObservable' event and our

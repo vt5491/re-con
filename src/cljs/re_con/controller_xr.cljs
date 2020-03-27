@@ -6,7 +6,6 @@
             [re-con.main-scene :as main-scene]
             [re-con.base :as base]
             [re-con.utils :as utils]))
-            ; [re-con.db :as db]))
 
 (def scene)
 (def xr)
@@ -44,11 +43,9 @@
   (println "controller-xr.init entered")
   (set! scene tgt-scene)
   (set! xr xr-helper)
-  ; (set! last-grip-time 0)
   (set! last-grip-time (.now js/Date))
   (set! last-grip-vel (js/BABYLON.Vector3. 0 0 0))
   (set! last-player-pos (.-position main-scene/camera)))
-  ; (set! left-ray main-scene/ray))
 
 (defn ^:export setup-xr-ctrl-cbs [xr-helper]
   (-> xr-helper (.-input ) (.-onControllerAddedObservable) (.add ctrl-added)))
@@ -57,7 +54,6 @@
 ;; xr.input.controllers[0 or 1]
 (defn ctrl-added [xr-controller]
   (println "controller-xr.ctrl-added: xr-controller.uniqueId=" (.-uniqueId xr-controller) ",handedness=" (get-ctrl-handedness xr-controller))
-  ; (js-debugger)
   (println "controller components=" (-> xr-controller (.-gamepadController) (.getComponentTypes)))
   ; const mainTrigger = xrController.motionController.getComponent(WebXRControllerComponent.TRIGGER);
   (let [handedness (get-ctrl-handedness xr-controller)
@@ -70,8 +66,6 @@
       ; (.onCollideObservable (.-pointer xr-controller) pointer-collider-handler)
       (-> (.-pointer xr-controller) (.-onCollideObservable) (.add pointer-collider-handler))
       (set! (-> (.-pointer xr-controller) (.-onCollide)) pointer-collider-handler))
-      ; (js-debugger))
-      ; (set! right-ray (.getWorldPointerRayToRef xr-controller)))
 
     (set! main-trigger (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
     ; (js-debugger)
@@ -88,10 +82,6 @@
     (when x-btn
       (-> x-btn (.-onButtonStateChanged) (.add x-btn-handler)))))
 
-      ; (-> main-trigger (.-onButtonStateChanged) (.add trigger-handler))
-      ; (-> main-trigger (.-onButtonStateChanged) (.add (if (= handedness :right)
-      ;                                                   right-trigger-handler
-      ;                                                   left-trigger-handler)))
       ;; the following works, but I chose to do all trigger events handling in main-scene/pointerHandler
       ;; so the mesh-selected and trigger-handler events occur at the same time.  I get timing issues
       ;; if I do them separately.
@@ -100,16 +90,11 @@
       ; (re-frame/dispatch [:attach-ray handedness main-scene/ray-helper]))))
 
 (defn trigger-handler-xr [trigger-state]
-  ; (println "trigger-handler-xr: trigger fired, pressed=" (.-pressed trigger-state))
-  ; (js-debugger))
-  ; (re-frame/dispatch [:trigger-handler {:pressed (.-pressed trigger-state)}])
   (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))]))
 
 (defn grip-handler-xr [grip-state]
-  ; (println "grip-handler-xr: grip fired, grip-state=" grip-state)
   (if (.-pressed grip-state)
     (when (and left-ctrl-xr (not is-gripping))
-      ; (js-debugger))))
       (set! grip-start-pos (-> left-ctrl-xr (.-grip) (.-position) (.clone)))
       (set! is-gripping true)
       (set! player-start-pos (.-position main-scene/camera))
@@ -119,13 +104,8 @@
         ;; transition from gripping to non-gripping
         (set! is-gripping false)
         (set! last-grip-time (.now js/Date))
-        ; (println "last-grip-vel=" last-grip-vel)
-        ; (println "last-grip-vel theta=" (-> (js/Math.atan (/ (.-y last-grip-vel) (.-x last-grip-vel))) (* (/ 180 js/Math.PI))))
-        ; (set! last-grip-vel (.subtract (.-position main-scene/camera) grip-start-pos)))
-        ; (let [normal-vel (.normalize (.subtract (.-position main-scene/camera) grip-start-pos))])
         ;; secret for good coasting velocity is to go off camera deltas not grip deltas.
         (let [normal-vel (.normalize (.subtract (.-position main-scene/camera) player-start-pos))
-        ; (let [normal-vel (.normalize (.subtract grip-start-pos (.-position main-scene/camera)))
               mag (.length last-grip-vel)]
           (set! last-grip-vel (.multiplyByFloats normal-vel mag mag mag))))
       ;; non-transitioning non-gripping
@@ -165,11 +145,13 @@
     true))
 
 (defn ^:export tick []
+  ; (println "controller_xr.tick.enter: camera-pos=" (.-position main-scene/camera))
   (when left-ctrl-xr
     (cond
       is-gripping
       (let [ctrl-delta-pos (-> left-ctrl-xr (.-grip) (.-position) (.subtract grip-start-pos) (.multiplyByFloats grip-factor grip-factor grip-factor))
             new-pos (.subtract (.-position main-scene/camera) ctrl-delta-pos)]
+        ; (println "controller_xr.tick.1: camera-pos=" (.-position main-scene/camera))
         (set! (.-position main-scene/camera) new-pos)
         (set! last-grip-vel (.subtract new-pos last-player-pos))
         (set! last-player-pos (.-position main-scene/camera)))
@@ -178,7 +160,9 @@
       (let [delta-time (- (.now js/Date) last-grip-time)
             vel-strength (* 5.6 (- 1.0 (/ delta-time GRIP_DECELERATION_INT)))
             delta-pos (.multiplyByFloats last-grip-vel vel-strength vel-strength vel-strength)]
+        ; (println "controller_xr.tick.2: camera-pos=" (.-position main-scene/camera) ", delta-pos=" delta-pos)
         (set! (.-position main-scene/camera) (.add (.-position main-scene/camera) delta-pos))))))
+  ; (println "controller_xr.tick.exit: camera-pos=" (.-position main-scene/camera)))
 
 
 

@@ -37,6 +37,7 @@
   ; ; (doseq [i (range 1 5)] (println "tmp"))
   ; ; (cp-scene/init-panel-scene)
   (re-frame/dispatch [:init-con-panel-scene]) ;;vt-x
+  (println "init.pre-render loop: camera.pos=" (.-position main-scene/camera))
   (main-scene/run-scene render-loop)) ;;vt-x
   ; (main-scene/run-scene-2))
 

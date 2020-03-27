@@ -224,20 +224,19 @@
 ;       (set! (.-text  text) "hello")
 ;       (set! (.-color text) "green")
 ;       (set! (.-content mesh) text))))
-(defn init-game-tiles []
-  (let [tile-height (* panel-height 1.0)
-        tile-width (* panel-width 1)
-        tile (js/BABYLON.MeshBuilder.CreateBox.
-              "game-tile"
-              (js-obj "height" tile-height
-                      "width" tile-width
-                      "depth" 0.1)
-              main-scene/scene)
-        rot (.-rotation tile)]
-    (set! (.-position tile) (js/BABYLON.Vector3. (- panel-width) 0  panel-width))
-    ; (set! (.-x (.-rotation tile)))
-    (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
-
+; (defn init-game-tiles []
+;   (let [tile-height (* panel-height 1.0)
+;         tile-width (* panel-width 1)
+;         tile (js/BABYLON.MeshBuilder.CreateBox.
+;               "game-tile"
+;               (js-obj "height" tile-height
+;                       "width" tile-width
+;                       "depth" 0.1)
+;               main-scene/scene)
+;         rot (.-rotation tile)]
+;     (set! (.-position tile) (js/BABYLON.Vector3. (- panel-width) 0  panel-width))
+;     ; (set! (.-x (.-rotation tile)))
+;     (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
 
 ;; read-only on db
 (defn init-con-panel-scene [db]
@@ -251,7 +250,8 @@
   ; (println "panels count=" (count panels)))
   ; (load-rebus-imgs db))
   (init-status-panel)
-  (init-game-tiles))
+  ; (init-game-tiles)
+  (re-frame/dispatch [:init-game-board]))
   ; (init-3d-gui))
   ; (init-3d-gui-2))
 
