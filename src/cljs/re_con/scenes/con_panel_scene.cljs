@@ -30,11 +30,11 @@
 
 ; (declare mesh-collider-handler)
 
-(defn abc [msg]
-  (println "hello from abc, msg is " msg))
-
-(defn abc-2 [msg]
-  (println "hello from abc-2, msg is " msg))
+; (defn abc [msg]
+;   (println "hello from abc, msg is " msg))
+;
+; (defn abc-2 [msg]
+;   (println "hello from abc-2, msg is " msg))
 
 (defn mesh-selected [mesh]
   ; (println "con_panel_scene: the following mesh was selected" (.-name mesh))
@@ -54,7 +54,9 @@
   ; (set! (.-material (-> js/document (.getElementById panel-id))) mat)
   (set! (.-material (-> main-scene/scene (.getMeshByName panel-name))) mat))
 
+;; pretty sure this is defunct..no longer called
 (defn toggle-panel-material [db panel-name]
+  (println "toggle-panel-material entered")
   (let [panel (-> main-scene/scene (.getMeshByName panel-name))
         mat-name (-> panel (.-material) (.-name))
         cell (nth (db :board-cells) (get base/panel-name-map (keyword panel-name)))]

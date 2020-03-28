@@ -1,5 +1,6 @@
 ;; This namespace handles all the 3-d mixamo models et al. that will appear
 ;; on the game tiles.
+;; Tiles are physical (babylon state) and cells are logical (re-frame or app) state.
 
 (ns re-con.game-board
   (:require
@@ -14,7 +15,7 @@
 (def ^:const tile-depth (* 0.1 base/scale-factor))
 (def ^:const tile-spacing (* 0.5 base/scale-factor))
 
-(defn mesh-loaded [new-meshes particle-systems skeletons picked-mesh]
+(defn mixamo-model-loaded [new-meshes particle-systems skeletons picked-mesh]
 ; (defn mesh-loaded [new-meshes particle-systems skeletons]
   (println "new-meshes=" new-meshes)
   (println "count=" (count new-meshes))
@@ -28,7 +29,7 @@
   (set! (.-material picked-mesh) main-scene/redMaterial)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
   (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
-               #(mesh-loaded %1 %2 %3 picked-mesh)))
+               #(mixamo-model-loaded %1 %2 %3 picked-mesh)))
   ; (let [pm (atom 0)])
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb"
   ;              ; (fn [new-meshes particle-systems skeletons] (mesh-loaded new-meshes particle-systems skeletons))
@@ -73,3 +74,19 @@
   (println "game-board.init-game-tiles: entered")
   (init-game-tile 1 1)
   (init-game-tile 2 1))
+
+; (assoc db :board-cells (conj (:board-cells db) cell)))
+
+; (defn init-game-cells [db model-coll row-cnt col-cnt])
+(defn init-game-cells [db model-coll]
+  (println "init-game-cells: db=" db)
+  (println "init-game-cells: model-coll=" model-coll)
+  (let [tmp
+        (assoc db :game-cells
+               (let [mdls (utils/randomize-seq (reduce #(conj %1 %2)  model-coll (seq model-coll)))]
+                 ; (reduce #(conj %1 {:status nil :model (:path (nth mdls %2))}) [] (range (count mdls)))
+                 (println "mdls=" mdls)
+                 ; (reduce #(conj %1 {:status nil :model "abc"}) [] (range (count mdls)))
+                 (reduce #(conj %1 {:status nil :path (:path (nth mdls %2))}) [] (range (count mdls)))))]
+    (println "tmp=" tmp)
+    tmp))

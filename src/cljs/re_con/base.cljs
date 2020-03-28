@@ -50,3 +50,6 @@
 
 (def game-row-cnt 2)
 (def game-col-cnt 2)
+
+(def ybot-mixamo-models [{:path "models/ybot_boxing/" :file "ybot_boxing.glb"}
+                         {:path "models/ybot_glb/" :file "ybot.glb"}])

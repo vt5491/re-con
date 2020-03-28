@@ -104,37 +104,38 @@
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene)
   ; (.ImportMesh bjs-l/glTF2FileLoader "" "models/dummy_glb/" "dummy.glb" scene)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy_glb/" "dummy.glb" scene) ;;works
-  (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/" "ybot.babylon" scene
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.glb" scene)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.gltf" scene
   ;; Note: scaling down in blender seems to have no effect when importing into babylon
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_small/" "jasper_small.babylon" scene)
-               (fn [new-meshes particle-systems skeletons]
-                 (println "new-meshes=" new-meshes)
-                 (println "count=" (count new-meshes))
-                 ; (doall (map #(.-scaling %1) new-meshes))
-                 ; (let [result (map #(.-scaling %1) new-meshes)]
-                 ;   (println "result=" result))
-                 ; (set! dummy (map #(set! (.-scaling %1) (js/BABYLON.Vector3. 0.1 0.1 0.1)) new-meshes))
-                 (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
-                 (set! skeleton (nth skeletons 0))
-                 ; (js-debugger)
-                 ; (println "available animations=" (.-animations skeleton))
-                 (set! (.-animationPropertiesOverride skeleton) (js/BABYLON.AnimationPropertiesOverride.))
-                 (let [animationPropertiesOverride (.-animationPropertiesOverride skeleton)]
-                   (set! (.-enableBlending animationPropertiesOverride) true)
-                   (set! (.-blendingSpeed animationPropertiesOverride) 0.05)
-                   ; (set! (.-loopMode animationPropertiesOverride) 1))
-                   (set! (.-loopMode animationPropertiesOverride) 0))
-                 ; (set! dribble-range (.getAnimationRange skeleton "dribble"))
-                 ; (let [ar (.getAnimationRanges skeleton)]
-                 ;   (js-debugger))
-                 (println "main_scene: animation ranges=" (.getAnimationRanges skeleton))
-                 (println "main_scene: animation groups=" (.-animationGroups scene))
-                 ; (.stopAnimation scene skeleton)))
-                 ;; comment out the following or specify ".start" to start the animation
-                 (-> (nth (.-animationGroups scene) 0) .stop)))
+  ;; Note: this works, but commented out because we don't need it here anymore
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene
+  ;              (fn [new-meshes particle-systems skeletons]
+  ;                (println "new-meshes=" new-meshes)
+  ;                (println "count=" (count new-meshes))
+  ;                ; (doall (map #(.-scaling %1) new-meshes))
+  ;                ; (let [result (map #(.-scaling %1) new-meshes)]
+  ;                ;   (println "result=" result))
+  ;                ; (set! dummy (map #(set! (.-scaling %1) (js/BABYLON.Vector3. 0.1 0.1 0.1)) new-meshes))
+  ;                (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
+  ;                (set! skeleton (nth skeletons 0))
+  ;                ; (js-debugger)
+  ;                ; (println "available animations=" (.-animations skeleton))
+  ;                (set! (.-animationPropertiesOverride skeleton) (js/BABYLON.AnimationPropertiesOverride.))
+  ;                (let [animationPropertiesOverride (.-animationPropertiesOverride skeleton)]
+  ;                  (set! (.-enableBlending animationPropertiesOverride) true)
+  ;                  (set! (.-blendingSpeed animationPropertiesOverride) 0.05)
+  ;                  ; (set! (.-loopMode animationPropertiesOverride) 1))
+  ;                  (set! (.-loopMode animationPropertiesOverride) 0))
+  ;                ; (set! dribble-range (.getAnimationRange skeleton "dribble"))
+  ;                ; (let [ar (.getAnimationRanges skeleton)]
+  ;                ;   (js-debugger))
+  ;                (println "main_scene: animation ranges=" (.getAnimationRanges skeleton))
+  ;                (println "main_scene: animation groups=" (.-animationGroups scene))
+  ;                ; (.stopAnimation scene skeleton)))
+  ;                ;; comment out the following or specify ".start" to start the animation
+  ;                (-> (nth (.-animationGroups scene) 0) .stop)))
                  ; (set! defeated-range (.getAnimationRange skeleton "defeated"))
                  ; (set! idle-range (.getAnimationRange skeleton "idle"))
                  ; (set! walking-range (.getAnimationRange skeleton "walking"))
@@ -198,44 +199,46 @@
       ; (set! xr (.createDefaultXRExperienceAsync scene))
       (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
           (p/then
-           (fn [x]
+           (fn [xr-default-exp]
              ;; note: x is a WebXRDefaultExperience
-             (println "xr-x=" x ",scene=" scene)
-             (set! xr x)
-             (re-frame/dispatch [:setup-xr-ctrl-cbs xr])
+             ; (println "xr-x=" x ",scene=" scene)
+             ; (set! xr x)
+             (re-frame/dispatch [:setup-xr-ctrl-cbs xr-default-exp])
              ;; Note: baseExperience is of type WebXRExperienceHelper
-             (set! features-manager (-> xr (.-baseExperience) (.-featuresManager)))
+             (set! features-manager (-> xr-default-exp (.-baseExperience) (.-featuresManager)))
              ; (.disableFeature features-manager "xr-controller-pointer-selection")
              ; (.enableFeature features-manager "xr-controller-pointer-selection")
              (println "xr features available=" (.GetAvailableFeatures js/BABYLON.WebXRFeaturesManager))
-             (println "xr features acitve=" (-> xr (.-baseExperience) (.-featuresManager) (.getEnabledFeatures)))
+             (println "xr features acitve=" (-> xr-default-exp (.-baseExperience) (.-featuresManager) (.getEnabledFeatures)))
              (println "POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
              (println "POINTERPICK=" js/BABYLON.PointerEventTypes.POINTERPICK)
-             (.registerBeforeRender scene cast-ray)
-             (set! tmp-obj (js/BABYLON.MeshBuilder.CreateBox. "tmp-obj"
-                                                              (js-obj "height" 0.25, "width" 0.25, "depth" 0.25)
-                                                              scene))
+             ; (.registerBeforeRender scene cast-ray)
+             ; (set! tmp-obj (js/BABYLON.MeshBuilder.CreateBox. "tmp-obj"
+             ;                                                  (js-obj "height" 0.25, "width" 0.25, "depth" 0.25)
+             ;                                                  scene))
              ; (set! (.-position tmp-obj) (js/BABYLON.Vector3. 0 0.5 0))
-             (set! (.-position tmp-obj) (js/BABYLON.Vector3. 2 0.5 0))
-             (set! (.-material tmp-obj) greenMaterial)
-             (set! camera (-> x (.-baseExperience) (.-camera)))
+             ; (set! (.-position tmp-obj) (js/BABYLON.Vector3. 2 0.5 0))
+             ; (set! (.-material tmp-obj) greenMaterial)
+             (set! camera (-> xr-default-exp (.-baseExperience) (.-camera)))
              (set! (.-position camera) camera-init-pos)
              ; (ctrl-xr/init scene xr)
-             (re-frame/dispatch [:init-xr xr])
-             (set! ray (js/BABYLON.Ray.))
-             (set! ray-helper (js/BABYLON.RayHelper. ray))
-             ; (set! ctrl-xr/left-ray ray)
-             (.attachToMesh ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20)
-             (.show ray-helper scene js/BABYLON.Color3. 255 0 0)
-             (-> xr (.-baseExperience) (.-onStateChangedObservable) (.add (fn [state]
-                                                                            (println "state=" state)
-                                                                            (when (= state js/BABYLON.WebXRState.IN_XR)
-                                                                              (println "state: in xr")
-                                                                              (println "state: old camera pos=" (.-position camera) ",camera-init-pos=" camera-init-pos)
-                                                                              ;;TODO: figure out why camera-init-pos not properly set here
-                                                                              ; (set! (.-position camera) camera-init-pos)
-                                                                              (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
-                                                                              (println "state: new camera pos=" (.-position camera))))))
+             (re-frame/dispatch [:init-xr xr-default-exp])
+             ;; note: ray stuff works, but we don't need
+             ; (set! ray (js/BABYLON.Ray.))
+             ; (set! ray-helper (js/BABYLON.RayHelper. ray))
+             ; (.attachToMesh ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20)
+             ; (.show ray-helper scene js/BABYLON.Color3. 255 0 0)
+             (-> xr-default-exp (.-baseExperience)
+                 (.-onStateChangedObservable)
+                 (.add (fn [state]
+                         (println "state=" state)
+                         (when (= state js/BABYLON.WebXRState.IN_XR)
+                           (println "state: in xr")
+                           (println "state: old camera pos=" (.-position camera) ",camera-init-pos=" camera-init-pos)
+                           ;;TODO: figure out why camera-init-pos not properly set here
+                           ; (set! (.-position camera) camera-init-pos)
+                           (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
+                           (println "state: new camera pos=" (.-position camera))))))
 
              (init-part-2)))))) ;; no work if no obj-moving in stanza
              ; (init-basic-2-2))))))
@@ -290,15 +293,15 @@
     v))
 
 ;; refer to https://www.babylonjs-playground.com/#BCU1XR#329
-(defn cast-ray []
-  ; (println "now in cast-ray")
-  (let [origin (.-position tmp-obj)
-        fwd-1 (js/BABYLON.Vector3. 0 0 1)
-        fwd-2 (vec-to-local fwd-1 tmp-obj)
-        dir (js/BABYLON.Vector3.Normalize (.subtract fwd-2 origin))]
-    (set! ray (js/BABYLON.Ray. origin (js/BABYLON.Vector3. 0 0 0) 100))))
-  ; (set! picking-ray
-  ;   (.createPickingRay scene (.-pointerX scene) (.-pointerY scene) (.Identity js/BABYLON.Matrix) (.-activeCamera scene)))
+; (defn cast-ray []
+;   ; (println "now in cast-ray")
+;   (let [origin (.-position tmp-obj)
+;         fwd-1 (js/BABYLON.Vector3. 0 0 1)
+;         fwd-2 (vec-to-local fwd-1 tmp-obj)
+;         dir (js/BABYLON.Vector3.Normalize (.subtract fwd-2 origin))]
+;     (set! ray (js/BABYLON.Ray. origin (js/BABYLON.Vector3. 0 0 0) 100))))
+;   ; (set! picking-ray
+;   ;   (.createPickingRay scene (.-pointerX scene) (.-pointerY scene) (.Identity js/BABYLON.Matrix) (.-activeCamera scene)))
 
 ; this sets up the pointer hooks for xr support
 (defn pointer-handler [pointer-info]

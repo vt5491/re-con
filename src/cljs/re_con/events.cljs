@@ -169,17 +169,17 @@
 ;;
 ;; cp-scene level
 ;;
-(re-frame/reg-event-db
- :abc
- (fn [db [_ msg]]
-   (cp-scene/abc msg)
-   db))
-
-(re-frame/reg-event-db
- :abc-2
- (fn [db [_ msg]]
-   (cp-scene/abc-2 msg)
-   db))
+; (re-frame/reg-event-db
+;  :abc
+;  (fn [db [_ msg]]
+;    (cp-scene/abc msg)
+;    db))
+;
+; (re-frame/reg-event-db
+;  :abc-2
+;  (fn [db [_ msg]]
+;    (cp-scene/abc-2 msg)
+;    db))
 
 (re-frame/reg-event-db
  :load-front-imgs
@@ -243,8 +243,15 @@
  (fn [db [_]]
    ; non-rf side effect
    ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
+   ;; delegate db population to foreign ns.
    (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
    db))
+
+(re-frame/reg-event-db
+ :init-game-cells
+ (fn [db [_]]
+   ;; delegate to outside fn.
+   (game-board/init-game-cells db base/ybot-mixamo-models)))
 
 (re-frame/reg-event-db
  :reset-picks

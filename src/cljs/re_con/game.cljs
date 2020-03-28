@@ -8,7 +8,8 @@
    [re-con.cell :as cell]
    [re-con.main-scene :as main-scene]
    [re-con.test-scene-ecsy :as test-scene-ecsy]
-   [re-con.scenes.con-panel-scene :as cp-scene]))
+   [re-con.scenes.con-panel-scene :as cp-scene]
+   [re-con.game-board :as gb]))
 
 ; (def default-img-map
 ;   {:0 base/burj-al-arab-img, :1 base/smiley-img, :2 base/smiley-img, :3 base/smiley-img,
@@ -38,6 +39,8 @@
   ; ; (cp-scene/init-panel-scene)
   (re-frame/dispatch [:init-con-panel-scene]) ;;vt-x
   (println "init.pre-render loop: camera.pos=" (.-position main-scene/camera))
+  (re-frame/dispatch [:init-game-cells])
+  ; (println "abc=" (gb/init-game-cells {} base/ybot-mixamo-models))
   (main-scene/run-scene render-loop)) ;;vt-x
   ; (main-scene/run-scene-2))
 
