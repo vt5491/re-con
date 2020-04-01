@@ -31,7 +31,9 @@
 (def scene)
 (def env)
 (def camera)
-(def camera-init-pos (js/BABYLON.Vector3. 0 5 -5))
+; (def camera-init-pos (js/BABYLON.Vector3. 0 5 -5))
+(def camera-init-pos (js/BABYLON.Vector3. 0 4 -15))
+; (def camera-init-pos (js/BABYLON.Vector3. 0 4 15))
 (def vrHelper)
 (def xr)
 (def ground)
@@ -96,6 +98,7 @@
   (set! (.-diffuseColor blueMaterial) (js/BABYLON.Color3. 0 0 1))
   (set! greenMaterial (js/BABYLON.StandardMaterial. "greenMaterial" scene))
   (set! (.-diffuseColor greenMaterial) (js/BABYLON.Color3. 0 1 0))
+  (js/BABYLON.Debug.AxesViewer.)
   ;; load in a mixamo asset
   ; BABYLON.SceneLoader.Append("./", "duck.gltf", scene, function (scene) {})
   ;   // do something with the scene
@@ -165,7 +168,7 @@
                  ; (loop)))
   ; (.Append js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" scene (fn [] (println "jasper_small loaded")))
   ; (.Load js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" (fn [] (println "jasper_small loaded")))
-  (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 10 "height" 10) scene))
+  (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 20 "height" 20) scene))
   ; (set! (.-material ground) (js/BABYLON.GridMaterial. "mat" scene))
   (set! (.-material ground) (bjs-m/GridMaterial. "mat" scene))
   ; (set! (.-material ground) (bjs-m/SimpleMaterial. "mat" scene))
@@ -189,11 +192,15 @@
       ; (set! camera (js/BABYLON.UniversalCamera. "uni-cam" (js/BABYLON.Vector3. 0 5 -10) scene))
       ;; Note: this is not needed as we set camera later in the promise handler
       ;; Note: no, we still need this camera as it's the camera that used prior to clicking on "enter vr"
+      ;; Note: rotations set here *are* propagated to the xr camera (upon entering full xr mode)
       (set! camera (js/BABYLON.UniversalCamera. "uni-cam" camera-init-pos scene))
+      ;; Note: babylonjs is a left-handed system.  This means the pos x-axis is going into the screen not coming out of it.
+      ;; hence we do *not* want to rotate by 180 deg. here.
+      ; (set! (.-rotation camera) (js/BABYLON.Vector3. 0 js/Math.PI 0))
       ; (println "camera pos (pre)=" (.-position camera))
-      (set! (.-y (.-position camera)) 3)
+      ;;(set! (.-y (.-position camera)) 3)
       ; (set! (.-y (.-position camera)) (.-y camera-init-pos))
-      (set! (.-z (.-position camera)) (* -7 base/scale-factor))
+      ;;(set! (.-z (.-position camera)) (* -7 base/scale-factor))
       ; (println "camera pos (post)=" (.-position camera))
       ; (set! (.-id camera) "main-camera")
       ; (set! xr (.createDefaultXRExperienceAsync scene))
@@ -221,6 +228,11 @@
              ; (set! (.-material tmp-obj) greenMaterial)
              (set! camera (-> xr-default-exp (.-baseExperience) (.-camera)))
              (set! (.-position camera) camera-init-pos)
+             ;;Note: setting rotations on the xr camera here have no effect.  You have to do it
+             ;; on the pre-xr camera (any rotations on that *will* propagate to the xr camera)
+             ; (prn "opening-camera: rot (pre)=" (.-rotation camera))
+             ; (set! (.-rotation camera) (js/BABYLON.Vector3. 0 js/Math.PI 0))
+             ; (prn "opening-camera: rot (post)=" (.-rotation camera))
              ; (ctrl-xr/init scene xr)
              (re-frame/dispatch [:init-xr xr-default-exp])
              ;; note: ray stuff works, but we don't need
@@ -237,7 +249,11 @@
                            (println "state: old camera pos=" (.-position camera) ",camera-init-pos=" camera-init-pos)
                            ;;TODO: figure out why camera-init-pos not properly set here
                            ; (set! (.-position camera) camera-init-pos)
-                           (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
+                           ; (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
+                           (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -10))
+                           ; (set! (.-position camera) (js/BABYLON.Vector3. 0 4 10))
+                           ; (set! (.-y (.-rotation camera)) js/Math.PI)
+                           ; (set! (.-rotation camera) (js/BABYLON.Vector3. 0 js/Math.PI 0))
                            (println "state: new camera pos=" (.-position camera))))))
 
              (init-part-2)))))) ;; no work if no obj-moving in stanza
@@ -249,7 +265,7 @@
   (println "now in init-part-2")
   ;; svale adjustment
   ;; Note: need if not using webxr (browser) extension, comment out if you are.
-  (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
+  ;vt-x (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
   (.setEnabled light1 true)
   ;; need to have obj-moving for some reason

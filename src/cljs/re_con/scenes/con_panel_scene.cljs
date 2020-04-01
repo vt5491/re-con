@@ -27,6 +27,7 @@
 ; (println "panel-array-xc=" panel-array-xc)
 (def ^:const panel-array-yc 1)
 (def ^:const panel-array-zc 6)
+; (def ^:const panel-array-zc -6)
 
 ; (declare mesh-collider-handler)
 
@@ -154,6 +155,7 @@
                                                                      (+ (* col-index (+ panel-width panel-spacing)) panel-array-xc)
                                                                      (+ (* -1 row-index (+ panel-height panel-spacing)) panel-array-yc (* (- base/board-row-cnt 1) panel-height))
                                                                      panel-array-zc))
+                                             ; (set! (.-rotation pnl) (js/BABYLON.Vector3. 0 js/Math.PI 0))
                                              (set! (.-material pnl) main-scene/redMaterial)
                                              ;;vt-x add
                                              (-> pnl (.-onCollideObservable) (.add (fn [] (println "mesh collision"))))

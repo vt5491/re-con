@@ -1,3 +1,4 @@
+;; events is refer to many referred by few (none?kkjjjjjjjkk)
 (ns re-con.events
   (:require
    [re-frame.core :as re-frame]
@@ -144,7 +145,23 @@
    ; (println "selected-mesh=" (if (contains? db :selected-mesh)
    ;                             (-> (get db :selected-mesh) .-name)
    ;                             nil))
-   (println "kwd-to-int :5=" (utils/kwd-to-int :5))
+   ; (println "kwd-to-int :5=" (utils/kwd-to-int :5))
+   (let [scene main-scene/scene
+         skel (.getSkeletonById scene "skeleton0")]
+     (prn "skel=" skel)
+     (prn "skel.scene=" (.getScene skel))
+     (set! (.-isVisible skel) false))
+     ; (.dispose skel))
+   (let [mesh1 (.getMeshByID main-scene/scene "__root__")]
+     (prn "mesh1=" mesh1)
+     ; no work
+     ; (set! (.-isVisible mesh1) false))
+     ; work
+     ; (.setEnabled mesh1) false
+     (if (.isEnabled mesh1)
+       (.setEnabled mesh1 false)
+       (.setEnabled mesh1 true)))
+
    db))
 
 (re-frame/reg-event-db

@@ -47,9 +47,8 @@
 (def scale-factor 1)
 ; (def scale-factor 100)
 (def mixamo-model-scale-factor 0.01)
-
-(def game-row-cnt 2)
-(def game-col-cnt 2)
+(def game-row-cnt 4)
+(def game-col-cnt 4)
 
 (def ybot-mixamo-models [{:path "models/ybot_boxing/" :file "ybot_boxing.glb"}
                          {:path "models/ybot_glb/" :file "ybot.glb"}])
