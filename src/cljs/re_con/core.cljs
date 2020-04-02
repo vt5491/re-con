@@ -9,8 +9,8 @@
    [babylonjs-gui]
    [re-con.controller :as controller]
    [re-con.game :as game]
-   [re-con.main-scene :as main-scene]
-   [re-con.scenes.con-panel-scene :as cp-scene]))
+   [re-con.main-scene :as main-scene]))
+   ; [re-con.scenes.con-panel-scene :as cp-scene]))
 
 
 ;; user code

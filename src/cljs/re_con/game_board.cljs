@@ -10,10 +10,14 @@
    [re-con.main-scene :as main-scene]))
 
 ;; constants
-(def ^:const tile-width (* 2 base/scale-factor))
-(def ^:const tile-height (* 2 base/scale-factor))
-(def ^:const tile-depth (* 0.1 base/scale-factor))
-(def ^:const tile-spacing (* 0.5 base/scale-factor))
+; (def ^:const tile-width (* 2 base/scale-factor))
+; (def ^:const tile-height (* 2 base/scale-factor))
+; (def ^:const tile-depth (* 0.1 base/scale-factor))
+; (def ^:const tile-spacing (* 0.5 base/scale-factor))
+(def ^:const tile-width 2)
+(def ^:const tile-height 2)
+(def ^:const tile-depth 0.1)
+(def ^:const tile-spacing 0.5)
 
 (defn mixamo-model-loaded [new-meshes particle-systems skeletons picked-mesh]
 ; (defn mesh-loaded [new-meshes particle-systems skeletons]
@@ -92,7 +96,8 @@
         ; col-adj (/ (* (+ tile-width tile-spacing) base/game-row-cnt) 2)
         width (+ tile-width tile-spacing)
         height (+ tile-height tile-spacing)
-        col-adj (-> (+ tile-width tile-spacing) (* base/game-row-cnt) (/ 2))
+        ;;TODO col-ad not used
+        ; col-adj (-> (+ tile-width tile-spacing) (* base/game-row-cnt) (/ 2))
         rot (.-rotation tile)]
     ; (set! (.-position tile) (js/BABYLON.Vector3. (* (- tile-width) col) 0 (* tile-height row)))
     ; (set! (.-position tile) (js/BABYLON.Vector3. (* (+ tile-width tile-spacing) col) 0 (* (+ tile-height tile-spacing) row)))
@@ -101,7 +106,8 @@
                              (-> width (* (dec col)) (- (/ width 2.0)))
                              0
                              ; (* (+ tile-height tile-spacing) row)
-                             (-> height (* (dec row)) (- (/ height 2.0)))))
+                             ; (-> height (* (dec row)) (- (/ height 2.0)))
+                             (- (-> height (* (dec row)) (- (/ height 2.0))))))
     (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
 
 (defn init-game-tiles []

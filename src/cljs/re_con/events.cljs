@@ -6,9 +6,11 @@
    [re-con.base :as base]
    [re-con.utils :as utils]
    [re-con.main-scene :as main-scene]
-   [re-con.scenes.con-panel-scene :as cp-scene]
+   ; [re-con.scenes.con-panel-scene :as cp-scene]
+   [re-con.rebus-board :as rebus-board]
    [re-con.cell :as cell]
-   [re-con.board :as board]
+   ; [re-con.board :as board]
+   [re-con.status-board :as status-board]
    [re-con.game-board :as game-board]
    [re-con.game :as game]
    [re-con.controller-xr :as ctrl-xr]))
@@ -41,27 +43,32 @@
     (println "now in trigger-change, new-state=" new-state)
     ;; babylon side effect here
     (if (and new-state (contains? db :selected-mesh))
-      (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
+      ; (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
+      (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
       ())
     (assoc db :trigger-pressed new-state)))
 
 ;; non re-frame func
 (defn mat-change-check [new-state db]
   (if (and new-state (contains? db :selected-mesh))
-      (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)))
+      ; (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
+      (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)))
       ; ()))
 
 (re-frame/reg-event-db
  :toggle-panel-material
  (fn [db [_ _]]
-   (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
+   ; (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
+   (rebus-board/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
    db))
 
 (re-frame/reg-event-db
  :show-panel-face
  (fn [db [_ _]]
    (when (:selected-mesh db)
-     (cp-scene/show-panel-face db (-> (db :selected-mesh) (.-name))))
+     ; (cp-scene/show-panel-face db (-> (db :selected-mesh) (.-name)))
+     (prn "events: show-panel-face")
+     (rebus-board/show-panel-face db (-> (db :selected-mesh) (.-name))))
    db))
 
 (re-frame/reg-event-db
@@ -185,52 +192,54 @@
 
 ;;
 ;; cp-scene level
+;; rebus-board level
 ;;
-; (re-frame/reg-event-db
-;  :abc
-;  (fn [db [_ msg]]
-;    (cp-scene/abc msg)
-;    db))
-;
-; (re-frame/reg-event-db
-;  :abc-2
-;  (fn [db [_ msg]]
-;    (cp-scene/abc-2 msg)
-;    db))
 
 (re-frame/reg-event-db
  :load-front-imgs
  (fn [db [_]]
    ; non-rf side effect
-   (cp-scene/load-front-imgs db)
+   ; (cp-scene/load-front-imgs db)
+   (rebus-board/load-front-imgs db)
    db))
 
 (re-frame/reg-event-db
  :load-rebus-imgs
  (fn [db [_]]
    ;non-rf side effect
-   (cp-scene/load-rebus-imgs db)
+   ; (cp-scene/load-rebus-imgs db)
+   (rebus-board/load-rebus-imgs db)
    db))
 
 (re-frame/reg-event-db
  :front-texture-loaded
  (fn [db [_ task index]]
    ;non-rf side effect
-   (cp-scene/front-texture-loaded db task index)
+   ; (cp-scene/front-texture-loaded db task index)
+   (rebus-board/front-texture-loaded db task index)
    db))
 
 (re-frame/reg-event-db
  :rebus-texture-loaded
  (fn [db [_ task index]]
    ;side effect
-   (cp-scene/rebus-texture-loaded db task index)
+   ; (cp-scene/rebus-texture-loaded db task index)
+   (rebus-board/rebus-texture-loaded db task index)
    db))
 
+; (re-frame/reg-event-db
+;  :init-con-panel-scene
+;  (fn [db [_]]
+;    ; side effect
+;    (cp-scene/init-con-panel-scene db)
+;    ; (assoc db :selectedMesh nil)))
+;    db))
+
 (re-frame/reg-event-db
- :init-con-panel-scene
+ :init-rebus-board
  (fn [db [_]]
    ; side effect
-   (cp-scene/init-con-panel-scene db)
+   (rebus-board/init-rebus-board)
    ; (assoc db :selectedMesh nil)))
    db))
 
@@ -239,7 +248,8 @@
  (fn [db [_ index]]
    (println "now resetting panel " index)
    ;non-rf side effect
-   (cp-scene/reset-panel index)
+   ; (cp-scene/reset-panel index)
+   (rebus-board/reset-panel index)
    db))
 ;;
 ;; cell related events
@@ -256,12 +266,14 @@
    db))
 
 (re-frame/reg-event-db
- :init-board-cells
+ ; :init-board-cells
+ :init-rebus-cells
  (fn [db [_]]
    ; non-rf side effect
    ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
    ;; delegate db population to foreign ns.
-   (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
+   ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
+   (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
    db))
 
 (re-frame/reg-event-db
@@ -281,16 +293,20 @@
 ;; status board level
 ;;
 (re-frame/reg-event-db
- :init-board-status
+ ; :init-board-stajtus
+ :init-status-board
  (fn [db [_]]
    ; non-rf side effect
-   (board/init-board-status db)))
+   ; (board/init-board-status db)
+   ; (status-board/init-board-status db)
+   (status-board/init-status-board db)))
 
 (re-frame/reg-event-db
  :cell-picked
  (fn [db [_ selected-mesh]]
    ; non-rf side effect
-   (board/cell-picked db selected-mesh)))
+   ; (board/cell-picked db selected-mesh)
+   (status-board/cell-picked db selected-mesh)))
 
 (re-frame/reg-event-db
  :cell-matched

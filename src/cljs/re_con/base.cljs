@@ -19,6 +19,12 @@
                      :panel-8 8, :panel-9 9, :panel-10 10, :panel-11 11
                      :panel-12 12, :panel-13 13, :panel-14 14, :panel-15 15})
 
+(def rebus-panel-name-map {
+                           :rebus-panel-0 0, :rebus-panel-1 1, :rebus-panel-2 2, :rebus-panel-3 3
+                           :rebus-panel-4 4, :rebus-panel-5 5, :rebus-panel-6 6, :rebus-panel-7 7
+                           :rebus-panel-8 8, :rebus-panel-9 9, :rebus-panel-10 10, :rebus-panel-11 11
+                           :rebus-panel-12 12, :rebus-panel-13 13, :rebus-panel-14 14, :rebus-panel-15 15})
+
 (def hotel-imgs ["imgs/hotels/aria_sign_overview_2.jpg",
                  "imgs/hotels/burj_al_arab.jpg",
                  "imgs/hotels/encore_signature.png",

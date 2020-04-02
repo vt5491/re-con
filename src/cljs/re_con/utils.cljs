@@ -10,7 +10,8 @@
   (when panel
     (println "get-panel-index, panel=" panel)
     ; (println "result=" (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
-    (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1))))
+    ; (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1))
+    (js/parseInt (nth (re-matches #"rebus-panel-(\d+)" (.-name panel)) 1))))
 
 (defn get-front-panel-img [db panel]
   ((nth (db :board-cells) (get-panel-index panel)) :front-img))

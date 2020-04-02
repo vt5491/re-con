@@ -332,7 +332,8 @@
       (println "POINTER DOWN, picked-mesh.id=" (.-id picked-mesh) ", picked-mesh=" picked-mesh ",
       type=" type ",POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
       ; (= type js/BABYLON.PointerEventTypes.POINTERPICK)
-    (when (re-matches #"panel-\d+" (.-name picked-mesh))
+    ; (when (re-matches #"panel-\d+" (.-name picked-mesh)))
+    (when (re-matches #"rebus-panel-\d+" (.-name picked-mesh))
       (cond
         (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
         (do

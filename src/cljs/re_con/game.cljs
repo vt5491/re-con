@@ -8,7 +8,8 @@
    [re-con.cell :as cell]
    [re-con.main-scene :as main-scene]
    [re-con.test-scene-ecsy :as test-scene-ecsy]
-   [re-con.scenes.con-panel-scene :as cp-scene]
+   ; [re-con.scenes.con-panel-scene :as cp-scene]
+   [re-con.rebus-board :as rebus-board]
    [re-con.game-board :as gb]))
 
 ; (def default-img-map
@@ -20,8 +21,6 @@
 ; (def rebus-img-stem "dont_beat_round_the_bush-")
 
 (defn render-loop []
-  ; (println "render loop")
-  ; (::controller/tick)
   (if base/use-xr
     (ctrl-xr/tick)
     (controller/tick))
@@ -30,19 +29,16 @@
 (defn init []
   (println "game.cljs: now in orig init")
   (main-scene/init) ;;vt-x
-  ; (main-scene/init-basic)
-  ; (main-scene/init-basic-2))
-  ; ; (cell/init-board base/con-row-cnt base/con-col-cnt default-img-map)
-  (re-frame/dispatch [:init-board-cells]) ;;vt-x
-  (re-frame/dispatch [:init-board-status]) ;;vt-x
-  ; ; (doseq [i (range 1 5)] (println "tmp"))
-  ; ; (cp-scene/init-panel-scene)
-  (re-frame/dispatch [:init-con-panel-scene]) ;;vt-x
+  ; (re-frame/dispatch [:init-board-cells]) ;;vt-x
+  (re-frame/dispatch [:init-rebus-cells]) ;;vt-x
+  ; (re-frame/dispatch [:init-board-status]) ;;vt-x
+  (re-frame/dispatch [:init-status-board]) ;;vt-x
+  ; (re-frame/dispatch [:init-con-panel-scene]) ;;vt-x
+  (re-frame/dispatch [:init-rebus-board]) ;;vt-x
+  (re-frame/dispatch [:init-game-board])
   (println "init.pre-render loop: camera.pos=" (.-position main-scene/camera))
   (re-frame/dispatch [:init-game-cells])
-  ; (println "abc=" (gb/init-game-cells {} base/ybot-mixamo-models))
   (main-scene/run-scene render-loop)) ;;vt-x
-  ; (main-scene/run-scene-2))
 
 ; (defn init []
 ;   (println "game.cljs: now in new init"))

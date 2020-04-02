@@ -13,7 +13,8 @@
 
 (defn init-front-img [cell])
 
-(defn init-board-cells [db row-cnt col-cnt default-img-map]
+; (defn init-board-cells [db row-cnt col-cnt default-img-map])
+(defn init-rebus-cells [db row-cnt col-cnt default-img-map]
   (dotimes [i (* row-cnt col-cnt)]
            ; (println "i=" i)
            (re-frame/dispatch [:add-cell { :front-img (default-img-map (keyword (str i)))
