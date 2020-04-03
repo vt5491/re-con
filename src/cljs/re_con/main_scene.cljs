@@ -268,6 +268,8 @@
   ;vt-x (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
   (.setEnabled light1 true)
+  ; var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+  (js/BABYLON.HemisphericLight. "hemiLight" (js/BABYLON.Vector3. 0 1 0) scene)
   ;; need to have obj-moving for some reason
   (set! obj-moving (js/BABYLON.MeshBuilder.CreateBox.
                     "status-panel"

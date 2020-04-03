@@ -19,43 +19,70 @@
 (def ^:const tile-depth 0.1)
 (def ^:const tile-spacing 0.5)
 
-(defn mixamo-model-loaded [new-meshes particle-systems skeletons picked-mesh]
-; (defn mesh-loaded [new-meshes particle-systems skeletons]
-  (println "new-meshes=" new-meshes)
-  (println "count=" (count new-meshes))
-  (prn "skeleton count=" (count skeletons))
-  (println "mesh-loaded: picked-mesh=" picked-mesh)
-  ; (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
-  (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
-  ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
-  (doall (map #(set! (.-position %1) (.-position picked-mesh)) new-meshes))
-  ; (if (and (get new-mesh1 0)))
-  ; (when (and (get)))
-  (when-let [mesh0 (get new-meshes 0)]
-    (when (-> (.-id mesh0) (= "__root__"))
-      (set! (.-id mesh0) (str "__root__-" 2)))))
-  ; (when-let* [mesh0 (get new-meshes 0)])
-  ; (set! (.-id)))
+;; defunct
+; (defn mixamo-model-loaded [new-meshes particle-systems skeletons picked-mesh]
+; ; (defn mesh-loaded [new-meshes particle-systems skeletons]
+;   (println "new-meshes=" new-meshes)
+;   (println "count=" (count new-meshes))
+;   (prn "skeleton count=" (count skeletons))
+;   (println "mesh-loaded: picked-mesh=" picked-mesh)
+;   ; (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
+;   (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
+;   ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
+;   (doall (map #(set! (.-position %1) (.-position picked-mesh)) new-meshes))
+;   ; (if (and (get new-mesh1 0)))
+;   ; (when (and (get)))
+;   (when-let [mesh0 (get new-meshes 0)]
+;     (when (-> (.-id mesh0) (= "__root__"))
+;       (set! (.-id mesh0) (str "__root__-" 2)))))
+;   ; (when-let* [mesh0 (get new-meshes 0)])
+;   ; (set! (.-id)))
 
 (defn model-loaded [new-meshes particle-systems skeletons picked-mesh tile-num]
   (println "new-meshes=" new-meshes)
-  (println "count=" (count new-meshes))
+  (println "count-abc=" (count new-meshes))
   (prn "skeleton count=" (count skeletons))
   (println "mesh-loaded: picked-mesh=" picked-mesh)
+  (println "available animations=" (.-animations (get skeletons 0)))
   ; (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
-  (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
+  ;vt-x (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
+  (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3.One))) new-meshes)
+  ;; use the following on the original boxing
   ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
   (doall (map #(set! (.-position %1) (.-position picked-mesh)) new-meshes))
+  (prn "new-meshes at 0=" (get new-meshes 0))
   (when-let [mesh0 (get new-meshes 0)]
+    (prn "id mesh0=" (.-id mesh0))
     (when (-> (.-id mesh0) (= "__root__"))
+      (prn "model-loaded: setting _root_ id to " (str "__root__" tile-num))
       (set! (.-id mesh0) (str "__root__" tile-num)))))
 
 (defn tile-selected [picked-mesh]
   (println "hi from tile-selected")
   (set! (.-material picked-mesh) main-scene/redMaterial)
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
-  (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
-               #(mixamo-model-loaded %1 %2 %3 picked-mesh)))
+  ;; works
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_dribble/" "ybot_dribble.glb" main-scene/scene)
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing/" "ybot_boxing.glb" main-scene/scene)
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing2/" "boxing2.glb" main-scene/scene)
+  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_many_anim.glb" main-scene/scene)
+  (let [tile-idx (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
+        mod (mod tile-idx 3)]
+    ; (if (even? tile-idx)
+    (when (= mod 0)
+      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene/scene)
+      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_boxing.glb" main-scene/scene
+                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+    (when (= mod 1)
+      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene/scene)
+      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_taunt.glb" main-scene/scene
+                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+    (when (= mod 2)
+      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_old_man_idle.glb" main-scene/scene)
+      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_tpose.glb" main-scene/scene
+                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))))
+
   ; (let [pm (atom 0)])
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb"
   ;              ; (fn [new-meshes particle-systems skeletons] (mesh-loaded new-meshes particle-systems skeletons))

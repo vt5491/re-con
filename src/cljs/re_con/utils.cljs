@@ -4,17 +4,18 @@
    [re-con.base :as base]))
 
 (defn get-panel-index
-  "given a panel (babylon mesh), return the index within the board.  Assumes a panel naming convention of 'panel-xx'"
-  [panel]
+  "given a panel (babylon mesh) and a stem, return the index within the board.  Assumes a panel naming convention of '<stem>-xx'"
+  [panel stem]
   ; (println "get-panel-index, panel name=" (.-name panel) ",match=" (re-matches #"panel-(\d+)" (.-name panel)))
   (when panel
-    (println "get-panel-index, panel=" panel)
-    ; (println "result=" (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
+    (println "get-panel-index, panel=" panel ", stem=" stem)
+    ;  (println "result=" (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
     ; (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1))
-    (js/parseInt (nth (re-matches #"rebus-panel-(\d+)" (.-name panel)) 1))))
+    ; (js/parseInt (nth (re-matches #"rebus-panel-(\d+)" (.-name panel)) 1))
+    (js/parseInt (nth (re-matches (re-pattern (str stem "-(\\d+)")) (.-name panel)) 1))))
 
 (defn get-front-panel-img [db panel]
-  ((nth (db :board-cells) (get-panel-index panel)) :front-img))
+  ((nth (db :board-cells) (get-panel-index panel "rebus-panel")) :front-img))
 
 
 ; (defn gen-img-map-0 [img-set]
