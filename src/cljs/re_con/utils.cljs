@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as re-frame]
    [re-con.base :as base]))
+   ; [re-con.main-scene :as main-scene]))
 
 (defn get-panel-index
   "given a panel (babylon mesh) and a stem, return the index within the board.  Assumes a panel naming convention of '<stem>-xx'"
@@ -17,6 +18,58 @@
 (defn get-front-panel-img [db panel]
   ((nth (db :board-cells) (get-panel-index panel "rebus-panel")) :front-img))
 
+
+(defn get-game-tile-mesh [idx]
+  "Get scene level mesh info for a game-tile")
+
+;; Note: tile-model-loaded should be read-only on db
+(defn tile-model-loaded [new-meshes particle-systems skeletons db tile-num]
+  (println "new-meshes=" new-meshes)
+  (println "count-abc=" (count new-meshes))
+  (prn "skeleton count=" (count skeletons))
+  ; (println "mesh-loaded: picked-mesh=" picked-mesh)
+  (println "available animations=" (.-animations (get skeletons 0)))
+  (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3.One))) new-meshes)
+  ;; use the following on the original boxing
+  ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
+  (let [main-scene (:main-scene db)
+        tile-mesh (-> main-scene (.getMeshByName (str "game-tile-" tile-num)))]
+    (doall (map #(set! (.-position %1) (.-position tile-mesh)) new-meshes))
+    (doall (map #(set! (.-rotation %1) (js/BABYLON.Vector3. (-> %1 .-rotation .-x)
+                                                            ; (+ (-> %1 .-rotation .-y) js/Math.PI)
+                                                            0
+                                                            (-> %1 .-rotation .-z))) new-meshes)))
+    ; (doall (map #(set! (-> %1 .-rotation .-y) (+ (-> %1 .-rotation .-y) (/ js/Math.PI 4))) new-meshes))
+    ; (doall (map #(set! (-> %1 .-rotation .-y) 0) new-meshes)))
+    ; (doall (map (fn [tile]
+    ;               (set! (.-position tile) (.-position tile-mesh))))))
+                  ; (set! (.-y (.-rotation tile)) (+ (.-y (.-rotation tile)) js/Math.PI))
+                  ;; rotate 180 because mixamo is right-handed and bjs is left-handed
+                  ; (set! (.-rotation tile) (.-rotation tile))))))
+                ; (set! (.-rotation tile) (js/BABYLON.Vector3. (-> tile .-rotation .-x)
+                ;                                              (+ (-> tile .-rotation .-y) js/Math.PI)
+                ;                          (-> tile .-rotation .-z))))))
+  (prn "new-meshes at 0=" (get new-meshes 0))
+  (when-let [mesh0 (get new-meshes 0)]
+    (prn "id mesh0=" (.-id mesh0))
+    (when (-> (.-id mesh0) (= "__root__"))
+      (prn "model-loaded: setting _root_ id to " (str "__root__" tile-num))
+      (set! (.-id mesh0) (str "__root__" tile-num))
+      (.setEnabled mesh0 false))))
+
+(defn load-tile-set [db]
+  "Load a full tile set of models for a given concentration game.
+   Assigns a model to each tile in the game board."
+  (let [main-scene (:main-scene db)]
+   (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene
+     #(tile-model-loaded %1 %2 %3 db 0))
+   (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene
+     #(tile-model-loaded %1 %2 %3 db 1))))
+  ; (let [main-scene (:main-scene db)
+  ;       mesh (-> main-scene (.getMeshByName (str "game-tile-" 8)))]
+  ;   (prn "load-tile-set. main-scene=" main-scene)
+  ;   (prn "load-tile-set. game-tile-8=" mesh)
+  ;   (prn "load-tile-set: tile.pos" (.-position mesh))))
 
 ; (defn gen-img-map-0 [img-set]
 ;   ; (loop))

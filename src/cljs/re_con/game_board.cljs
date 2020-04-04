@@ -58,30 +58,48 @@
       (set! (.-id mesh0) (str "__root__" tile-num)))))
 
 (defn tile-selected [picked-mesh]
-  (println "hi from tile-selected")
-  (set! (.-material picked-mesh) main-scene/redMaterial)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
-  ;; works
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_dribble/" "ybot_dribble.glb" main-scene/scene)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing/" "ybot_boxing.glb" main-scene/scene)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing2/" "boxing2.glb" main-scene/scene)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_many_anim.glb" main-scene/scene)
-  (let [tile-idx (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
-        mod (mod tile-idx 3)]
-    ; (if (even? tile-idx)
-    (when (= mod 0)
-      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene/scene)
-      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_boxing.glb" main-scene/scene
-                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
-    (when (= mod 1)
-      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene/scene)
-      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_taunt.glb" main-scene/scene
-                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
-    (when (= mod 2)
-      ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_old_man_idle.glb" main-scene/scene)
-      (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_tpose.glb" main-scene/scene
-                   #(model-loaded %1 %2 %3 picked-mesh tile-idx)))))
+  (let [tile-n (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
+        ; main-scene main-scene/scene
+        model (-> main-scene/scene (.getMeshByID (str "__root__" tile-n)))]
+    (if (.isEnabled model)
+      (do
+        (prn "enableed->unenabled")
+        (set! (.-material picked-mesh) main-scene/whiteMaterial)
+        (.setEnabled model false))
+      (do
+        (prn "unenabled->enabled")
+        (set! (.-material picked-mesh) main-scene/redMaterial)
+        (.setEnabled model true)))
+    (prn "model status=" (.isEnabled model))))
+
+
+  ; (if (.isEnabled light)))
+
+; (defn tile-selected [picked-mesh]
+;   (println "hi from tile-selected")
+;   (set! (.-material picked-mesh) main-scene/redMaterial)
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
+;   ;; works
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_dribble/" "ybot_dribble.glb" main-scene/scene)
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing/" "ybot_boxing.glb" main-scene/scene)
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing2/" "boxing2.glb" main-scene/scene)
+;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_many_anim.glb" main-scene/scene)
+;   (let [tile-idx (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
+;         mod (mod tile-idx 3)]
+;     ; (if (even? tile-idx)
+;     (when (= mod 0)
+;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene/scene)
+;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_boxing.glb" main-scene/scene
+;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+;     (when (= mod 1)
+;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene/scene)
+;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_taunt.glb" main-scene/scene
+;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+;     (when (= mod 2)
+;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_old_man_idle.glb" main-scene/scene)
+;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_tpose.glb" main-scene/scene
+;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))))
 
   ; (let [pm (atom 0)])
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb"

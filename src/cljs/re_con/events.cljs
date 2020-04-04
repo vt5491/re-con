@@ -1,4 +1,4 @@
-;; events is refer to many referred by few (none?kkjjjjjjjkk)
+;; events is refer to many referred by few (none?)
 (ns re-con.events
   (:require
    [re-frame.core :as re-frame]
@@ -23,7 +23,19 @@
    db/default-db))
 
 ;;
-;; controller/user interaction level
+;;> main-scene
+;;
+(re-frame/reg-event-db
+ :set-main-scene
+ (fn [db [_ scene]]
+   (assoc db :main-scene scene)))
+
+; (re-frame/reg-event-db
+;  :get-main-scene
+;  (fn [db [_ main-scene]]
+;    (assoc db :main-scene main-scene/scene)))
+;;
+;;> controller/user interaction level
 ;;
 (re-frame/reg-event-db
   :toggle-light
@@ -191,8 +203,7 @@
    db))
 
 ;;
-;; cp-scene level
-;; rebus-board level
+;;> rebus-board level
 ;;
 
 (re-frame/reg-event-db
@@ -252,7 +263,7 @@
    (rebus-board/reset-panel index)
    db))
 ;;
-;; cell related events
+;;> cell related events
 ;;
 (re-frame/reg-event-db
  :add-cell
@@ -288,9 +299,18 @@
    ; non-rf side effect
    (cell/reset-cell-picks db)))
 
+;;
+;;> game-tile related events
+;;
+(re-frame/reg-event-db
+ :load-tile-set
+ (fn [db [_]]
+   ; non-rf side effect
+   (utils/load-tile-set db)
+   db))
 
 ;;
-;; status board level
+;;> status board level
 ;;
 (re-frame/reg-event-db
  ; :init-board-stajtus
@@ -326,7 +346,7 @@
    (game-board/init-game-tiles)
    db))
 
-;; xr events
+;;> xr events
 ;; intermediary between a babylon.js 'onControllerAddedObservable' event and our
 ;; user level handler.  We are basically just using re-frame as a router here so
 ;; it's at least hooked into the event pipeline.
