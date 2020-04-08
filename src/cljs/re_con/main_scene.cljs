@@ -347,10 +347,12 @@
           ; (js-debugger)
           (re-frame/dispatch [:mesh-selected picked-mesh])
           ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))])
-          (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)]))
+          ;  (re-frame/dispatch [:trigger-handler (js-obj "pressed" true)])
+          (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" true)]))
         (= type js/BABYLON.PointerEventTypes.POINTERUP)
         (do
-          (re-frame/dispatch [:trigger-handler (js-obj "pressed" false)]))
+          ; (re-frame/dispatch [:trigger-handler (js-obj "pressed" false)])
+          (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" false)]))
         :else nil))
     ; (when (re-matches #"game-tile.*" (.-name picked-mesh))
     ;   (println "game-tile selected")
@@ -364,8 +366,17 @@
         (re-matches #"game-tile.*" (.-name picked-mesh))
         (do
           (println "game-tile selected")
-          (println "about to dispatch game-board-trigger-handler")
-          (re-frame/dispatch [:game-board-trigger-handler picked-mesh]))))))
+          ;; fire off a rebus mesh selected event and let it indirectly synchronize down to the game tile
+          (let [rebus-mesh
+                (-> scene (.getMeshByName (str "rebus-panel-" (utils/get-panel-index picked-mesh "game-tile"))))]
+            (prn "rebus-mesh id=" (.-id rebus-mesh))
+            (re-frame/dispatch [:mesh-selected rebus-mesh])
+            ; (re-frame/dispatch [:rebus-panel-trigger-handler rebus-mesh])
+            (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" true)])
+            (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" false)])))))))
+          ; (println "game-tile selected")
+          ; (println "about to dispatch game-board-trigger-handler")
+          ; (re-frame/dispatch [:game-board-trigger-handler picked-mesh]))))))
 
 
 (defn set-scaling [mesh, s]

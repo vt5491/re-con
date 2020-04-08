@@ -83,6 +83,7 @@
      (rebus-board/show-panel-face db (-> (db :selected-mesh) (.-name))))
    db))
 
+;; TODO : is this still used?
 (re-frame/reg-event-db
   :toggle-trigger
   (fn [db _]
@@ -112,7 +113,8 @@
 ;; note: main trigger routine
 ;;TODO: rename to something like ':panel-trigger-handler'
 (re-frame/reg-event-fx
- :trigger-handler
+ ; :trigger-handler
+ :rebus-panel-trigger-handler
  (fn [{:keys [db]} [_ stateObject]]
    (let [board-status (db :board-status)
          first-pick (get board-status :first-pick)
@@ -126,7 +128,13 @@
                                      (.-pressed stateObject)
                                      (not (:trigger-pressed db)))]
              {:dispatch-n (list [:show-panel-face]
-                                [:cell-picked (db :selected-mesh)])})))))
+                                [:cell-picked (db :selected-mesh)]
+                                ;; and trigger the corresponding game tile to be selected.
+                                [:game-board-trigger-handler
+                                 (-> main-scene/scene
+                                     (.getMeshByName
+                                      (str "game-tile-"
+                                           (utils/get-panel-index (:selected-mesh db) "rebus-panel"))))])})))))
 
 (re-frame/reg-event-db
  :game-board-trigger-handler
@@ -261,6 +269,7 @@
    ;non-rf side effect
    ; (cp-scene/reset-panel index)
    (rebus-board/reset-panel index)
+   (game-board/reset-tile index)
    db))
 ;;
 ;;> cell related events
@@ -284,14 +293,16 @@
    ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
    ;; delegate db population to foreign ns.
    ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
-   (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
+   ; (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
+   (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/ybot-many-anim-imgs))
    db))
 
 (re-frame/reg-event-db
  :init-game-cells
- (fn [db [_]]
+ (fn [db [_ tile-set]]
    ;; delegate to outside fn.
-   (game-board/init-game-cells db base/ybot-mixamo-models)))
+   ; (game-board/init-game-cells db base/ybot-mixamo-models)
+   (game-board/init-game-cells db tile-set)))
 
 (re-frame/reg-event-db
  :reset-picks

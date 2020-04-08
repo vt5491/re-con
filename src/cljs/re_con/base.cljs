@@ -56,5 +56,26 @@
 (def game-row-cnt 4)
 (def game-col-cnt 4)
 
+(def ybot-many-anim-imgs [
+                          "imgs/ybot/many_anim/ybot_boxing.png"
+                          "imgs/ybot/many_anim/ybot_roundhouse_kick.png"
+                          "imgs/ybot/many_anim/ybot_golf_putt_victory.png"
+                          "imgs/ybot/many_anim/ybot_old_man_idle.png"
+                          "imgs/ybot/many_anim/ybot_samba_dancing.png"
+                          "imgs/ybot/many_anim/ybot_searching_pockets.png"
+                          "imgs/ybot/many_anim/ybot_sitting.png"
+                          "imgs/ybot/many_anim/ybot_taunt.png"])
+
 (def ybot-mixamo-models [{:path "models/ybot_boxing/" :file "ybot_boxing.glb"}
                          {:path "models/ybot_glb/" :file "ybot.glb"}])
+
+;; game level tile-sets here
+(def ybot-anim-many-tile-set [
+                              {:path "models/ybot/many_anim/" :fn "ybot_boxing.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_taunt.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_old_man_idle.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_sitting.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_samba_dancing.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_searching_pockets.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_golf_putt_victory.glb"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_roundhouse_kick.glb"}])

@@ -24,11 +24,11 @@
 
 ;; Note: tile-model-loaded should be read-only on db
 (defn tile-model-loaded [new-meshes particle-systems skeletons db tile-num]
-  (println "new-meshes=" new-meshes)
-  (println "count-abc=" (count new-meshes))
-  (prn "skeleton count=" (count skeletons))
+  ; (println "new-meshes=" new-meshes)
+  ; (println "count-abc=" (count new-meshes))
+  ; (prn "skeleton count=" (count skeletons))
   ; (println "mesh-loaded: picked-mesh=" picked-mesh)
-  (println "available animations=" (.-animations (get skeletons 0)))
+  ; (println "available animations=" (.-animations (get skeletons 0)))
   (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3.One))) new-meshes)
   ;; use the following on the original boxing
   ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
@@ -49,27 +49,39 @@
                 ; (set! (.-rotation tile) (js/BABYLON.Vector3. (-> tile .-rotation .-x)
                 ;                                              (+ (-> tile .-rotation .-y) js/Math.PI)
                 ;                          (-> tile .-rotation .-z))))))
-  (prn "new-meshes at 0=" (get new-meshes 0))
+  ; (prn "new-meshes at 0=" (get new-meshes 0))
   (when-let [mesh0 (get new-meshes 0)]
-    (prn "id mesh0=" (.-id mesh0))
+    ; (prn "id mesh0=" (.-id mesh0))
     (when (-> (.-id mesh0) (= "__root__"))
       (prn "model-loaded: setting _root_ id to " (str "__root__" tile-num))
       (set! (.-id mesh0) (str "__root__" tile-num))
       (.setEnabled mesh0 false))))
+      ; (.setEnabled mesh0 true))))
+
+; (defn load-tile-set [db]
+;   "Load a full tile set of models for a given concentration game.
+;    Assigns a model to each tile in the game board."
+;   (let [main-scene (:main-scene db)]
+;    (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene
+;      #(tile-model-loaded %1 %2 %3 db 0))
+;    (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene
+;      #(tile-model-loaded %1 %2 %3 db 1))))
+;   ; (let [main-scene (:main-scene db)
+;   ;       mesh (-> main-scene (.getMeshByName (str "game-tile-" 8)))]
+;   ;   (prn "load-tile-set. main-scene=" main-scene)
+;   ;   (prn "load-tile-set. game-tile-8=" mesh)
+;   ;   (prn "load-tile-set: tile.pos" (.-position mesh))))
 
 (defn load-tile-set [db]
-  "Load a full tile set of models for a given concentration game.
-   Assigns a model to each tile in the game board."
   (let [main-scene (:main-scene db)]
-   (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene
-     #(tile-model-loaded %1 %2 %3 db 0))
-   (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene
-     #(tile-model-loaded %1 %2 %3 db 1))))
-  ; (let [main-scene (:main-scene db)
-  ;       mesh (-> main-scene (.getMeshByName (str "game-tile-" 8)))]
-  ;   (prn "load-tile-set. main-scene=" main-scene)
-  ;   (prn "load-tile-set. game-tile-8=" mesh)
-  ;   (prn "load-tile-set: tile.pos" (.-position mesh))))
+    ; (map #(.ImportMesh js/BABYLON.SceneLoader "" (:path %1) (:fn %1) main-scene #(tile-model-loaded %1 %2 %3)) (:game-cells db))
+    (doseq [[i game-cell] (map-indexed vector (db :game-cells))]
+      (.ImportMesh js/BABYLON.SceneLoader ""
+                   (:path game-cell)
+                   (:fn game-cell)
+                   main-scene #(tile-model-loaded %1 %2 %3 db i)))))
+
+
 
 ; (defn gen-img-map-0 [img-set]
 ;   ; (loop))
@@ -173,20 +185,20 @@
 ;; when in xr mode, return the laser-pointer mesh attached to the controller model.
 ;; example: (get-xr-laser-pointer :left my-scene)
 ;; Note: this only works once a controller is actually attached e.g. on a 'onControllerAddedObservable' event.
-(defn get-xr-laser-pointer [hand scene]
-  ;; we start with the trigger mesh which is the only mesh that has the "hand" in its name
-  (let [trigger-mesh (str "generic-trigger " (name hand))
-        parent (.parent (.getMeshByID scene trigger-mesh))
-        ctrl-pointer-mesh (.getMeshByID scene "controllerPointer")]
-    ctrl-pointer-mesh))
-
-;;defunct
-(defn get-left-xr-laser-pointer [scene]
-  (get-xr-laser-pointer :left scene))
-
-;;defunct
-(defn get-right-xr-laser-pointer [scene]
-  (get-xr-laser-pointer :right scene))
+; (defn get-xr-laser-pointer [hand scene]
+;   ;; we start with the trigger mesh which is the only mesh that has the "hand" in its name
+;   (let [trigger-mesh (str "generic-trigger " (name hand))
+;         parent (.parent (.getMeshByID scene trigger-mesh))
+;         ctrl-pointer-mesh (.getMeshByID scene "controllerPointer")]
+;     ctrl-pointer-mesh))
+;
+; ;;defunct
+; (defn get-left-xr-laser-pointer [scene]
+;   (get-xr-laser-pointer :left scene))
+;
+; ;;defunct
+; (defn get-right-xr-laser-pointer [scene]
+;   (get-xr-laser-pointer :right scene))
 
 ;; not-defunct
 ; (defmacro when-let*

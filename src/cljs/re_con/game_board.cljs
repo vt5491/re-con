@@ -38,24 +38,25 @@
 ;   ; (when-let* [mesh0 (get new-meshes 0)])
 ;   ; (set! (.-id)))
 
-(defn model-loaded [new-meshes particle-systems skeletons picked-mesh tile-num]
-  (println "new-meshes=" new-meshes)
-  (println "count-abc=" (count new-meshes))
-  (prn "skeleton count=" (count skeletons))
-  (println "mesh-loaded: picked-mesh=" picked-mesh)
-  (println "available animations=" (.-animations (get skeletons 0)))
-  ; (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
-  ;vt-x (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
-  (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3.One))) new-meshes)
-  ;; use the following on the original boxing
-  ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
-  (doall (map #(set! (.-position %1) (.-position picked-mesh)) new-meshes))
-  (prn "new-meshes at 0=" (get new-meshes 0))
-  (when-let [mesh0 (get new-meshes 0)]
-    (prn "id mesh0=" (.-id mesh0))
-    (when (-> (.-id mesh0) (= "__root__"))
-      (prn "model-loaded: setting _root_ id to " (str "__root__" tile-num))
-      (set! (.-id mesh0) (str "__root__" tile-num)))))
+; ;;TODO: pretty sure this has been replaced by utils/tile-model-loaded
+; (defn model-loaded [new-meshes particle-systems skeletons picked-mesh tile-num]
+;   ; (println "new-meshes=" new-meshes)
+;   ; (println "count-abc=" (count new-meshes))
+;   ; (prn "skeleton count=" (count skeletons))
+;   ; (println "mesh-loaded: picked-mesh=" picked-mesh)
+;   ; (println "available animations=" (.-animations (get skeletons 0)))
+;   ; (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
+;   ;vt-x (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) new-meshes))
+;   (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3.One))) new-meshes)
+;   ;; use the following on the original boxing
+;   ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
+;   (doall (map #(set! (.-position %1) (.-position picked-mesh)) new-meshes))
+;   ; (prn "new-meshes at 0=" (get new-meshes 0))
+;   (when-let [mesh0 (get new-meshes 0)]
+;     ; (prn "id mesh0=" (.-id mesh0))
+;     (when (-> (.-id mesh0) (= "__root__"))
+;       (prn "model-loaded: setting _root_ id to " (str "__root__" tile-num))
+;       (set! (.-id mesh0) (str "__root__" tile-num)))))
 
 (defn tile-selected [picked-mesh]
   (let [tile-n (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
@@ -72,34 +73,40 @@
         (.setEnabled model true)))
     (prn "model status=" (.isEnabled model))))
 
-
+    ; (defn reset-tile [index]
+    ;   (set! (.-material picked-mesh) main-scene/whiteMaterial)
+    ;   (.setEnabled model false))))
   ; (if (.isEnabled light)))
-
-; (defn tile-selected [picked-mesh]
-;   (println "hi from tile-selected")
-;   (set! (.-material picked-mesh) main-scene/redMaterial)
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
-;   ;; works
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_dribble/" "ybot_dribble.glb" main-scene/scene)
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing/" "ybot_boxing.glb" main-scene/scene)
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing2/" "boxing2.glb" main-scene/scene)
-;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_many_anim.glb" main-scene/scene)
-;   (let [tile-idx (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
-;         mod (mod tile-idx 3)]
-;     ; (if (even? tile-idx)
-;     (when (= mod 0)
-;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene/scene)
-;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_boxing.glb" main-scene/scene
-;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
-;     (when (= mod 1)
-;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene/scene)
-;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_taunt.glb" main-scene/scene
-;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
-;     (when (= mod 2)
-;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_old_man_idle.glb" main-scene/scene)
-;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_tpose.glb" main-scene/scene
-;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))))
+(defn reset-tile [index]
+  (let [tile-mesh (-> main-scene/scene (.getMeshByName (str "game-tile-" index)))
+        model (-> main-scene/scene (.getMeshByID (str "__root__" index)))]
+    (set! (.-material tile-mesh) main-scene/whiteMaterial)
+    (.setEnabled model false)))
+  ; (defn tile-selected [picked-mesh]
+  ;   (println "hi from tile-selected")
+  ;   (set! (.-material picked-mesh) main-scene/redMaterial)
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene mesh-loaded)
+  ;   ;; works
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" main-scene/scene
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_dribble/" "ybot_dribble.glb" main-scene/scene)
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing/" "ybot_boxing.glb" main-scene/scene)
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/boxing2/" "boxing2.glb" main-scene/scene)
+  ;   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_many_anim.glb" main-scene/scene)
+  ;   (let [tile-idx (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
+  ;         mod (mod tile-idx 3)]
+  ;     ; (if (even? tile-idx)
+  ;     (when (= mod 0)
+  ;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene/scene)
+  ;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_boxing.glb" main-scene/scene
+  ;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+  ;     (when (= mod 1)
+  ;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene/scene)
+  ;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_taunt.glb" main-scene/scene
+  ;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))
+  ;     (when (= mod 2)
+  ;       ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_old_man_idle.glb" main-scene/scene)
+  ;       (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper/many_anim/" "jasper_tpose.glb" main-scene/scene
+  ;                    #(model-loaded %1 %2 %3 picked-mesh tile-idx)))))
 
   ; (let [pm (atom 0)])
   ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb"
@@ -112,20 +119,20 @@
   ;                  ; (mesh-loaded new-meshes particle-systems skeletons @pm)
   ;                  (mesh-loaded new-meshes particle-systems skeletons)))))
 
-; (defn init-game-tiles []
-;   (println "game-board.init-game-tiles: entered")
-;   (let [
-;         ; tile-height (* panel-height 1.0)
-;         ; tile-width (* panel-width 1)
-;         tile (js/BABYLON.MeshBuilder.CreateBox.
-;               "game-tile"
-;               (js-obj "height" tile-height
-;                       "width" tile-width
-;                       "depth" tile-depth)
-;               main-scene/scene)
-;         rot (.-rotation tile)]
-;     (set! (.-position tile) (js/BABYLON.Vector3. (- tile-width) 0  tile-width))
-;     (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
+  ; (defn init-game-tiles []
+  ;   (println "game-board.init-game-tiles: entered")
+  ;   (let [
+  ;         ; tile-height (* panel-height 1.0)
+  ;         ; tile-width (* panel-width 1)
+  ;         tile (js/BABYLON.MeshBuilder.CreateBox.
+  ;               "game-tile"
+  ;               (js-obj "height" tile-height
+  ;                       "width" tile-width
+  ;                       "depth" tile-depth)
+  ;               main-scene/scene)
+  ;         rot (.-rotation tile)]
+  ;     (set! (.-position tile) (js/BABYLON.Vector3. (- tile-width) 0  tile-width))
+  ;     (set! (-> rot .-x) (+ (.-x rot) (* base/ONE-DEG 90)))))
 
 (defn init-game-tile [row col]
   ; (println "game-board.init-game-tile: row=" row ", col=" col)
@@ -195,6 +202,8 @@
                  ; (reduce #(conj %1 {:status nil :model (:path (nth mdls %2))}) [] (range (count mdls)))
                  (println "mdls=" mdls)
                  ; (reduce #(conj %1 {:status nil :model "abc"}) [] (range (count mdls)))
-                 (reduce #(conj %1 {:status nil :path (:path (nth mdls %2))}) [] (range (count mdls)))))]
+                 (reduce #(conj %1 {:status nil
+                                    :path (:path (nth mdls %2))
+                                    :fn (:fn (nth mdls %2))}) [] (range (count mdls)))))]
     (println "tmp=" tmp)
     tmp))

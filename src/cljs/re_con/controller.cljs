@@ -74,7 +74,8 @@
   ;; simply promote to a re-frame method so we can have access to the db.
   ; (println "babylon triggerStateChangeObservable fired")
   ; (re-frame/dispatch [:trigger-handler-2 stateObject])
-  (re-frame/dispatch [:trigger-handler stateObject]))
+  ; (re-frame/dispatch [:trigger-handler stateObject])
+  (re-frame/dispatch [:rebus-panel-trigger-handler stateObject]))
 
 (defn grip-handler [stateObject]
   ; (println "now in cljs side-trigger-handler")

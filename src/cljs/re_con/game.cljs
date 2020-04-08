@@ -37,7 +37,7 @@
   (re-frame/dispatch [:init-rebus-board]) ;;vt-x
   (re-frame/dispatch [:init-game-board])
   ; (println "init.pre-render loop: camera.pos=" (.-position main-scene/camera))
-  (re-frame/dispatch [:init-game-cells])
+  (re-frame/dispatch [:init-game-cells base/ybot-anim-many-tile-set])
   (re-frame/dispatch [:load-tile-set])
   (main-scene/run-scene render-loop)) ;;vt-x
 
