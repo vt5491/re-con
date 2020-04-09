@@ -29,6 +29,7 @@
 (defn init []
   (println "game.cljs: now in orig init")
   (main-scene/init) ;;vt-x
+  (re-frame/dispatch [:rnd-board-seq])
   ; (re-frame/dispatch [:init-board-cells]) ;;vt-x
   (re-frame/dispatch [:init-rebus-cells]) ;;vt-x
   ; (re-frame/dispatch [:init-board-status]) ;;vt-x

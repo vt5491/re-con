@@ -16,7 +16,7 @@
     (js/parseInt (nth (re-matches (re-pattern (str stem "-(\\d+)")) (.-name panel)) 1))))
 
 (defn get-front-panel-img [db panel]
-  ((nth (db :board-cells) (get-panel-index panel "rebus-panel")) :front-img))
+  ((nth (db :rebus-board-cells) (get-panel-index panel "rebus-panel")) :front-img))
 
 
 (defn get-game-tile-mesh [idx]
@@ -163,23 +163,41 @@
 ;         linear-img-seq (into [] (flatten (for [i (range uniq-img-num)] (repeat 2 i))))
 ;         random-img-seq (randomize-seq linear-img-seq)]))
 
-(defn gen-front-img-map [img-set]
-  (let [uniq-img-num (/ (* base/board-row-cnt base/board-col-cnt) 2)
-        linear-img-seq (into [] (flatten (for [i (range uniq-img-num)] (repeat 2 i))))
-        rnd-img-seq (randomize-seq linear-img-seq)]
-    (println "rnd-img-seq=" rnd-img-seq)
-    (loop [i 0
-           img-idxs rnd-img-seq
-           result {}]
-      (if (pos? (count img-idxs))
-        (let [img-idx (first img-idxs)]
-          ; (println "img-idx=" img-idx)
-          (recur (inc i) (rest img-idxs) (conj result (hash-map (-> i str keyword) (nth img-set img-idx)))))
-        ;; return the result sorted numerically by key
-        (into (sorted-map-by (fn [k1 k2]
-                               (let [n1 (kwd-to-int k1)
-                                     n2 (kwd-to-int k2)]
-                                 (compare n1 n2)))) result)))))
+
+;; Note: rnd-seq should be 2x as long as coll (since every element in coll should be represeneted twice)
+(defn randomize-coll-by-seq
+  "return a collection in the same order as the index sequence in seq"
+  [coll rnd-seq]
+  (reduce #(conj %1 (get coll %2)) [] rnd-seq))
+
+
+(defn rnd-board-seq
+  "generate a common random set of indexes on db to later be used to randomize the game board and rebus board"
+  []
+  (let [uniq-cell-cnt (-> (* base/board-row-cnt base/board-col-cnt) (/ 2))
+        board-indexes (vec (into (range uniq-cell-cnt) (range uniq-cell-cnt)))]
+      rnd-board-seq (randomize-seq  board-indexes)))
+
+
+;; defunct with intro of rnd-board-seq
+;; this creates the random map for the rebus board
+; (defn gen-front-img-map [img-set]
+;   (let [uniq-img-num (/ (* base/board-row-cnt base/board-col-cnt) 2)
+;         linear-img-seq (into [] (flatten (for [i (range uniq-img-num)] (repeat 2 i))))
+;         rnd-img-seq (randomize-seq linear-img-seq)]
+;     (println "rnd-img-seq=" rnd-img-seq)
+;     (loop [i 0
+;            img-idxs rnd-img-seq
+;            result {}]
+;       (if (pos? (count img-idxs))
+;         (let [img-idx (first img-idxs)]
+;           ; (println "img-idx=" img-idx)
+;           (recur (inc i) (rest img-idxs) (conj result (hash-map (-> i str keyword) (nth img-set img-idx)))))
+;         ;; return the result sorted numerically by key
+;         (into (sorted-map-by (fn [k1 k2]
+;                                (let [n1 (kwd-to-int k1)
+;                                      n2 (kwd-to-int k2)]
+;                                  (compare n1 n2)))) result)))))
 
 ;; defunct
 ;; when in xr mode, return the laser-pointer mesh attached to the controller model.

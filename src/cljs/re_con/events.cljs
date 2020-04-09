@@ -67,12 +67,12 @@
       (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)))
       ; ()))
 
-(re-frame/reg-event-db
- :toggle-panel-material
- (fn [db [_ _]]
-   ; (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
-   (rebus-board/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
-   db))
+; (re-frame/reg-event-db
+;  :toggle-panel-material
+;  (fn [db [_ _]]
+;    ; (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
+;    (rebus-board/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
+;    db))
 
 (re-frame/reg-event-db
  :show-panel-face
@@ -274,11 +274,12 @@
 ;;
 ;;> cell related events
 ;;
+;; TODO: rename to 'rebus-board-cells'
 (re-frame/reg-event-db
  :add-cell
  (fn [db [_ cell]]
    ; (println "add-cell.fn: entered, db.do-it=" (db/do-it))
-   (assoc db :board-cells (conj (:board-cells db) cell))))
+   (assoc db :rebus-board-cells (conj (:rebus-board-cells db) cell))))
 
 (re-frame/reg-event-db
  :cell-front-img
@@ -294,7 +295,11 @@
    ;; delegate db population to foreign ns.
    ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
    ; (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
-   (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/ybot-many-anim-imgs))
+   ; (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/ybot-many-anim-imgs))
+   (prn "events: init-rebus-cells: rnd-board-seq=" (:rnd-board-seq db))
+   (prn "events: init-rebus-cells: randomized coll=" (utils/randomize-coll-by-seq base/ybot-many-anim-imgs (:rnd-board-seq db)))
+   (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt
+                          (utils/randomize-coll-by-seq base/ybot-many-anim-imgs (:rnd-board-seq db)))
    db))
 
 (re-frame/reg-event-db
@@ -302,7 +307,9 @@
  (fn [db [_ tile-set]]
    ;; delegate to outside fn.
    ; (game-board/init-game-cells db base/ybot-mixamo-models)
-   (game-board/init-game-cells db tile-set)))
+   ; (game-board/init-game-cells db tile-set)
+   (prn "event: init-game-cells: rnd tile-set=" (utils/randomize-coll-by-seq tile-set (:rnd-board-seq db)))
+   (assoc db :game-cells (utils/randomize-coll-by-seq tile-set (:rnd-board-seq db)))))
 
 (re-frame/reg-event-db
  :reset-picks
@@ -344,8 +351,8 @@
  (fn [db [_ match-index]]
    ; (assoc (nth (db :board-cells) match-index) :status :matched)
    ; (assoc-in db [(nth (db :board-cells) match-index) :status] :matched)
-   (println "cell-matched: index=" match-index ", status=" (get-in db [:board-cells match-index :status]))
-   (assoc-in db [:board-cells match-index :status] :matched)))
+   (println "cell-matched: index=" match-index ", status=" (get-in db [:rebus-board-cells match-index :status]))
+   (assoc-in db [:rebus-board-cells match-index :status] :matched)))
 
 ;;
 ;; game board level
@@ -357,16 +364,24 @@
    (game-board/init-game-tiles)
    db))
 
+;;
+;; utils level
+;;
+(re-frame/reg-event-db
+ :rnd-board-seq
+ (fn [db [_]]
+   ;; non-rf delegate
+   (assoc db :rnd-board-seq (utils/rnd-board-seq))))
 ;;> xr events
 ;; intermediary between a babylon.js 'onControllerAddedObservable' event and our
 ;; user level handler.  We are basically just using re-frame as a router here so
 ;; it's at least hooked into the event pipeline.
 ;; defunct
-(re-frame/reg-event-db
-  :attach-ray
- (fn [db [_ xr-ctrl ray]]
-   (ctrl-xr/attach-ray-to-laser-pointer xr-ctrl ray)
-   db))
+; (re-frame/reg-event-db
+;   :attach-ray
+;  (fn [db [_ xr-ctrl ray]]
+;    (ctrl-xr/attach-ray-to-laser-pointer xr-ctrl ray)
+;    db))
 
 ;
 (re-frame/reg-event-db

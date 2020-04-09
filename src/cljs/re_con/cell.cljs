@@ -17,7 +17,8 @@
 (defn init-rebus-cells [db row-cnt col-cnt default-img-map]
   (dotimes [i (* row-cnt col-cnt)]
            ; (println "i=" i)
-           (re-frame/dispatch [:add-cell { :front-img (default-img-map (keyword (str i)))
+           ; (re-frame/dispatch [:add-cell { :front-img (default-img-map (keyword (str i)))}])
+           (re-frame/dispatch [:add-cell { :front-img (get default-img-map i)
                                           :front-mat (js/BABYLON.StandardMaterial. (str "front-mat-" i) main-scene/scene)
                                           :rebus-img-stem base/rebus-img-stem
                                           :rebus-mat (js/BABYLON.StandardMaterial. (str "rebus-mat-" i main-scene/scene))

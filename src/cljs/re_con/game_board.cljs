@@ -189,21 +189,22 @@
   ; (init-game-tile 2 1)
   ; (init-game-tile 3 3))
 
-; (assoc db :board-cells (conj (:board-cells db) cell)))
+; (assoc db :rebus-board-cells (conj (:board-cells db) cell)))
 
 ; (defn init-game-cells [db model-coll row-cnt col-cnt])
-(defn init-game-cells [db model-coll]
-  (println "init-game-cells: db=" db)
-  (println "init-game-cells: model-coll=" model-coll)
-  (let [tmp
-        (assoc db :game-cells
-               ;; double the models in random coll. because each avatar will 2x in game-board
-               (let [mdls (utils/randomize-seq (reduce #(conj %1 %2)  model-coll (seq model-coll)))]
-                 ; (reduce #(conj %1 {:status nil :model (:path (nth mdls %2))}) [] (range (count mdls)))
-                 (println "mdls=" mdls)
-                 ; (reduce #(conj %1 {:status nil :model "abc"}) [] (range (count mdls)))
-                 (reduce #(conj %1 {:status nil
-                                    :path (:path (nth mdls %2))
-                                    :fn (:fn (nth mdls %2))}) [] (range (count mdls)))))]
-    (println "tmp=" tmp)
-    tmp))
+;; defunct
+; (defn init-game-cells [db model-coll]
+;   (println "init-game-cells: db=" db)
+;   (println "init-game-cells: model-coll=" model-coll)
+;   (let [tmp
+;         (assoc db :game-cells
+;                ;; double the models in random coll. because each avatar will 2x in game-board
+;                (let [mdls (utils/randomize-seq (reduce #(conj %1 %2)  model-coll (seq model-coll)))]
+;                  ; (reduce #(conj %1 {:status nil :model (:path (nth mdls %2))}) [] (range (count mdls)))
+;                  (println "mdls=" mdls)
+;                  ; (reduce #(conj %1 {:status nil :model "abc"}) [] (range (count mdls)))
+;                  (reduce #(conj %1 {:status nil
+;                                     :path (:path (nth mdls %2))
+;                                     :fn (:fn (nth mdls %2))}) [] (range (count mdls)))))]
+;     (println "tmp=" tmp)
+;     tmp))

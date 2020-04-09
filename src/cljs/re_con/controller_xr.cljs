@@ -180,9 +180,9 @@
 ;       (if hit
 ;         (println "picking hit: mesh=" (.-pickedMesh hit))))))
 ;defunct
-(defn attach-ray-to-laser-pointer [hand ray]
-  (println "attach-ray-to-last-pointer: ray=" ray)
-  ; (let [laser-pointer-mesh (.getMeshByID xr-ctrl "laserPointer")])
-  (let [laser-pointer-mesh (utils/get-xr-laser-pointer hand main-scene/scene)]
-    (.attachToMesh main-scene/ray-helper laser-pointer-mesh)))
-  ; (.attachToMesh main-scene/ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20))
+; (defn attach-ray-to-laser-pointer [hand ray]
+;   (println "attach-ray-to-last-pointer: ray=" ray)
+;   ; (let [laser-pointer-mesh (.getMeshByID xr-ctrl "laserPointer")])
+;   (let [laser-pointer-mesh (utils/get-xr-laser-pointer hand main-scene/scene)]
+;     (.attachToMesh main-scene/ray-helper laser-pointer-mesh)))
+;   ; (.attachToMesh main-scene/ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20))
