@@ -327,6 +327,19 @@
    (utils/load-tile-set db)
    db))
 
+(re-frame/reg-event-db
+ :load-power-slave-pyr
+ (fn [db [_]]
+   ; non-rf side effect
+   (utils/load-power-slave-pyr db)
+   db))
+
+(re-frame/reg-event-db
+ :load-model
+ (fn [db [_ path fn]]
+   ; non-rf side effect
+   (utils/load-model db path fn)
+   db))
 ;;
 ;;> status board level
 ;;

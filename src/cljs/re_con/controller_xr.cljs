@@ -28,15 +28,18 @@
 (def grip-factor (if (>= base/scale-factor 100) 2.1 1.9))
 ; (def GRIP_DECELERATION_INT 1000)
 (def GRIP_DECELERATION_INT 1500)
+(def game-pad-mgr)
 
 (declare trigger-handler-xr)
 (declare grip-handler-xr)
+; (declare grip-handler-xr-2)
 (declare get-ctrl-handedness)
 (declare ctrl-added)
 (declare left-trigger-handler)
 (declare right-trigger-handler)
 (declare pointer-collider-handler)
 (declare x-btn-handler)
+(declare gamepad-evt-handler)
 
 ; const ray = getWorldPointerRayToRef(controller);
 (defn init [tgt-scene xr-helper]
@@ -49,38 +52,91 @@
 
 (defn ^:export setup-xr-ctrl-cbs [xr-helper]
   (-> xr-helper (.-input ) (.-onControllerAddedObservable) (.add ctrl-added)))
+  ; (when (not game-pad-mgr)
+  ;   (set! game-pad-mgr (js/BABYLON.GamepadManager.))
+  ;   (-> game-pad-mgr .-onGamepadConnectedObservable (.add gamepad-evt-handler))))
+
+  ; gamepadManager.onGamepadConnectedObservable.add((gamepad, state)=>{})
+  ;     gamepad.onButtonDownObservable.add((button, state)=>{}))
+  ; if (controller.inputSource.gamepad) {}
+  ;      controller.onMotionControllerInitObservable.add(() => {})
+  ;          const component = controller.motionController.getMainComponent();
+  ;          component.onButtonStateChangedObservable.add(() => {}))
+
+; (defn gamepad-evt-handler [gamepad state]
+;   (prn "gamepad-btn-handler: gamepad=" gamepad ", state=" state)
+;   (-> gamepad .-onButtonDownObservable (.add (fn [btn state]
+;                                                (prn "btn-obseverable: btn=" btn ",state=" state)))))
+(defn motion-controller-added [motion-ctrl]
+  (prn "gamepad-evt-hander entered, motion-ctrl=" motion-ctrl)
+  (set! grip (-> motion-ctrl (.getComponent "xr-standard-squeeze")))
+  ; (set! grip (-> motion-ctrl .getMainComponent))
+  (when grip
+    (prn "setting up grip btn handler")
+    ; (-> grip (.-onButtonStateChangedObservable) (.add (fn [component]
+    ;                                                     (prn "grip onButtonStateChangedObservable: component=" component)
+    ;                                                     (when (-> component .-changes .-pressed)
+    ;                                                       (when (-> component .-pressed)
+    ;                                                         (prn "grip: button pressed"))))))
+    (-> grip (.-onButtonStateChangedObservable) (.add grip-handler-xr))))
+  ; (js-debugger))
 
 ;; Note: should also be able to directly access the controllers via:
 ;; xr.input.controllers[0 or 1]
 (defn ctrl-added [xr-controller]
   (println "controller-xr.ctrl-added: xr-controller.uniqueId=" (.-uniqueId xr-controller) ",handedness=" (get-ctrl-handedness xr-controller))
-  (println "controller components=" (-> xr-controller (.-gamepadController) (.getComponentTypes)))
-  ; const mainTrigger = xrController.motionController.getComponent(WebXRControllerComponent.TRIGGER);
-  (let [handedness (get-ctrl-handedness xr-controller)
-        gamepad-ctrl (.-gamepadController xr-controller)]
-    (when (= handedness :left)
-      (set! left-ctrl-xr xr-controller))
-      ; (set! left-ray (.getWorldPointerRayToRef xr-controller)))
-    (when (= handedness :right)
-      (set! right-ctrl-xr xr-controller)
-      ; (.onCollideObservable (.-pointer xr-controller) pointer-collider-handler)
-      (-> (.-pointer xr-controller) (.-onCollideObservable) (.add pointer-collider-handler))
-      (set! (-> (.-pointer xr-controller) (.-onCollide)) pointer-collider-handler))
+  ; (println "controller components=" (-> xr-controller (.-gamepadController) (.getComponentTypes)))
+  ; (when-let [])
+  (let [handedness (get-ctrl-handedness xr-controller)]
+     (when (= handedness :left)
+       (set! left-ctrl-xr xr-controller))
+     ; (set! left-ray (.getWorldPointerRayToRef xr-controller)))
+     (when (= handedness :right)
+       (set! right-ctrl-xr xr-controller)))
+  (when (-> xr-controller .-inputSource .-gamepad)
+    (-> xr-controller (.-onMotionControllerInitObservable) (.add motion-controller-added)))
 
-    (set! main-trigger (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
-    ; (js-debugger)
-    ; (set! ctrl-xr xr-controller)
-    ; (set! main-trigger (-> ctrl-xr (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
-    (println "controller-xr.ctrl-added: main-trigger=" main-trigger)
-    (when main-trigger
-      ; (.onButtonStateChanged main-trigger trigger-handler)
-      (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))
-    (set! grip (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.SQUEEZE)))
-    (when grip
-       (-> grip (.-onButtonStateChanged) (.add grip-handler-xr)))
-    (set! x-btn (.getComponent gamepad-ctrl "a-button"))
-    (when x-btn
-      (-> x-btn (.-onButtonStateChanged) (.add x-btn-handler)))))
+  ; (-> xr-controller .-onMotionControllerInitObservable)
+  ; (js-debugger)
+  ; (when (not game-pad-mgr)
+  ;   (set! game-pad-mgr (js/BABYLON.GamepadManager.))
+  ;   (-> game-pad-mgr .-onGamepadConnectedObservable (.add gamepad-evt-handler)))
+    ; (-> game-pad-mgr .-onGamepadConnectedObservable (.add
+    ;                                                  (fn [btn state]
+    ;                                                    (prn "btn-pressed, btn=" btn ",state=" state)))))
+  ; (println "controller components=" (-> xr-controller (.-motionController) (.getComponentTypes)))
+  ; const mainTrigger = xrController.motionController.getComponent(WebXRControllerComponent.TRIGGER);
+  (comment
+   (let [handedness (get-ctrl-handedness xr-controller)
+         ; gamepad-ctrl (.-gamepadController xr-controller)
+         gamepad-ctrl (-> xr-controller .-inputSource .-gamepad)]
+     (when (= handedness :left)
+       (set! left-ctrl-xr xr-controller))
+     ; (set! left-ray (.getWorldPointerRayToRef xr-controller)))
+     (when (= handedness :right)
+       (set! right-ctrl-xr xr-controller)
+       ; (.onCollideObservable (.-pointer xr-controller) pointer-collider-handler)
+       (-> (.-pointer xr-controller) (.-onCollideObservable) (.add pointer-collider-handler))
+       (set! (-> (.-pointer xr-controller) (.-onCollide)) pointer-collider-handler))
+
+     ; (set! main-trigger (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
+     ; (js-debugger)
+     ; (set! main-trigger (-> gamepad-ctrl (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
+     (set! main-trigger (-> gamepad-ctrl (.-buttons) (nth 0)))
+     ; (set! ctrl-xr xr-controller)
+     ; (set! main-trigger (-> ctrl-xr (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.TRIGGER)))
+     (println "controller-xr.ctrl-added: main-trigger=" main-trigger)
+     (when main-trigger
+       ; (.onButtonStateChanged main-trigger trigger-handler)
+       (println "controller-xr.ctrl-added: add onButtonStateChanged to main-trigger=" main-trigger))
+     ; (set! grip (-> xr-controller (.-gamepadController) (.getComponent js/BABYLON.WebXRControllerComponent.SQUEEZE)))
+     ; (set! grip (-> gamepad-ctrl (.getComponent js/BABYLON.WebXRControllerComponent.SQUEEZE)))
+     (set! grip (-> gamepad-ctrl .-buttons (nth 1)))
+     (when grip
+       (-> grip (.-onButtonStateChanged) (.add grip-handler-xr))))))
+    ; (set! x-btn (.getComponent gamepad-ctrl "a-button"))
+    ; (when x-btn
+    ;   (-> x-btn (.-onButtonStateChanged) (.add x-btn-handler)))))
 
       ;; the following works, but I chose to do all trigger events handling in main-scene/pointerHandler
       ;; so the mesh-selected and trigger-handler events occur at the same time.  I get timing issues
@@ -92,8 +148,28 @@
 (defn trigger-handler-xr [trigger-state]
   (re-frame/dispatch [:trigger-handler (js-obj "pressed" (.-pressed trigger-state))]))
 
-(defn grip-handler-xr [grip-state]
-  (if (.-pressed grip-state)
+; (defn grip-handler-xr [grip-state]
+;   (if (.-pressed grip-state)
+;     (when (and left-ctrl-xr (not is-gripping))
+;       (set! grip-start-pos (-> left-ctrl-xr (.-grip) (.-position) (.clone)))
+;       (set! is-gripping true)
+;       (set! player-start-pos (.-position main-scene/camera))
+;       (set! last-grip-time (.now js/Date)))
+;     (if is-gripping
+;       (do
+;         ;; transition from gripping to non-gripping
+;         (set! is-gripping false)
+;         (set! last-grip-time (.now js/Date))
+;         ;; secret for good coasting velocity is to go off camera deltas not grip deltas.
+;         (let [normal-vel (.normalize (.subtract (.-position main-scene/camera) player-start-pos))
+;               mag (.length last-grip-vel)]
+;           (set! last-grip-vel (.multiplyByFloats normal-vel mag mag mag))))
+;       ;; non-transitioning non-gripping
+;       (set! is-gripping false))))
+
+(defn grip-handler-xr [cmpt]
+  (if (.-pressed cmpt)
+  ; (if (and (-> cmpt (.-changes) (.-pressed)) (.-pressed cmpt))
     (when (and left-ctrl-xr (not is-gripping))
       (set! grip-start-pos (-> left-ctrl-xr (.-grip) (.-position) (.clone)))
       (set! is-gripping true)
@@ -133,12 +209,6 @@
       (if (re-matches #".*-(right).*" id)
         :right))))
 
-;
-; function predicate(mesh){}
-;   if (mesh == box2 || mesh == box){}
-;     return false;
-;
-;   return true;
 (defn mesh-select-predicate [mesh]
   (if (= (.-name mesh) "tmp-obj")
     false
@@ -163,26 +233,3 @@
         ; (println "controller_xr.tick.2: camera-pos=" (.-position main-scene/camera) ", delta-pos=" delta-pos)
         (set! (.-position main-scene/camera) (.add (.-position main-scene/camera) delta-pos))))))
   ; (println "controller_xr.tick.exit: camera-pos=" (.-position main-scene/camera)))
-
-
-
-  ; (if false
-  ; ; (if left-ray
-  ; ; (if main-scene/ray
-  ;   ; (let [hit (.-pickWithRay left-ray)])
-  ;   (let [hit (.pickWithRay scene left-ray mesh-select-predicate)]
-  ;     (if hit
-  ;       (println "picking hit: mesh.name=" (-> hit (.-pickedMesh) (.-name)) ", mesh=" (.-pickedMesh hit))))))
-;
-; (defn ^:export tick []
-;   (if main-scene/ray
-;     (let [hit (.pickWithRay main-scene/ray)]
-;       (if hit
-;         (println "picking hit: mesh=" (.-pickedMesh hit))))))
-;defunct
-; (defn attach-ray-to-laser-pointer [hand ray]
-;   (println "attach-ray-to-last-pointer: ray=" ray)
-;   ; (let [laser-pointer-mesh (.getMeshByID xr-ctrl "laserPointer")])
-;   (let [laser-pointer-mesh (utils/get-xr-laser-pointer hand main-scene/scene)]
-;     (.attachToMesh main-scene/ray-helper laser-pointer-mesh)))
-;   ; (.attachToMesh main-scene/ray-helper tmp-obj (js/BABYLON.Vector3. 0 0 1) (js/BABYLON.Vector3. 0 0 0) 20))

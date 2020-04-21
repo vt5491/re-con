@@ -40,6 +40,8 @@
   ; (println "init.pre-render loop: camera.pos=" (.-position main-scene/camera))
   (re-frame/dispatch [:init-game-cells base/ybot-anim-many-tile-set])
   (re-frame/dispatch [:load-tile-set])
+  ; (re-frame/dispatch [:load-power-slave-pyr])
+  (re-frame/dispatch [:load-model "models/grass/" "grass.glb"])
   (main-scene/run-scene render-loop)) ;;vt-x
 
 ; (defn init []

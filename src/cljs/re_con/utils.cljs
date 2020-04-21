@@ -7,12 +7,8 @@
 (defn get-panel-index
   "given a panel (babylon mesh) and a stem, return the index within the board.  Assumes a panel naming convention of '<stem>-xx'"
   [panel stem]
-  ; (println "get-panel-index, panel name=" (.-name panel) ",match=" (re-matches #"panel-(\d+)" (.-name panel)))
   (when panel
     (println "get-panel-index, panel=" panel ", stem=" stem)
-    ;  (println "result=" (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1)))
-    ; (js/parseInt (nth (re-matches #"panel-(\d+)" (.-name panel)) 1))
-    ; (js/parseInt (nth (re-matches #"rebus-panel-(\d+)" (.-name panel)) 1))
     (js/parseInt (nth (re-matches (re-pattern (str stem "-(\\d+)")) (.-name panel)) 1))))
 
 (defn get-front-panel-img [db panel]
@@ -39,17 +35,6 @@
                                                             ; (+ (-> %1 .-rotation .-y) js/Math.PI)
                                                             0
                                                             (-> %1 .-rotation .-z))) new-meshes)))
-    ; (doall (map #(set! (-> %1 .-rotation .-y) (+ (-> %1 .-rotation .-y) (/ js/Math.PI 4))) new-meshes))
-    ; (doall (map #(set! (-> %1 .-rotation .-y) 0) new-meshes)))
-    ; (doall (map (fn [tile]
-    ;               (set! (.-position tile) (.-position tile-mesh))))))
-                  ; (set! (.-y (.-rotation tile)) (+ (.-y (.-rotation tile)) js/Math.PI))
-                  ;; rotate 180 because mixamo is right-handed and bjs is left-handed
-                  ; (set! (.-rotation tile) (.-rotation tile))))))
-                ; (set! (.-rotation tile) (js/BABYLON.Vector3. (-> tile .-rotation .-x)
-                ;                                              (+ (-> tile .-rotation .-y) js/Math.PI)
-                ;                          (-> tile .-rotation .-z))))))
-  ; (prn "new-meshes at 0=" (get new-meshes 0))
   (when-let [mesh0 (get new-meshes 0)]
     ; (prn "id mesh0=" (.-id mesh0))
     (when (-> (.-id mesh0) (= "__root__"))
@@ -57,20 +42,6 @@
       (set! (.-id mesh0) (str "__root__" tile-num))
       (.setEnabled mesh0 false))))
       ; (.setEnabled mesh0 true))))
-
-; (defn load-tile-set [db]
-;   "Load a full tile set of models for a given concentration game.
-;    Assigns a model to each tile in the game board."
-;   (let [main-scene (:main-scene db)]
-;    (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_boxing.glb" main-scene
-;      #(tile-model-loaded %1 %2 %3 db 0))
-;    (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/many_anim/" "ybot_taunt.glb" main-scene
-;      #(tile-model-loaded %1 %2 %3 db 1))))
-;   ; (let [main-scene (:main-scene db)
-;   ;       mesh (-> main-scene (.getMeshByName (str "game-tile-" 8)))]
-;   ;   (prn "load-tile-set. main-scene=" main-scene)
-;   ;   (prn "load-tile-set. game-tile-8=" mesh)
-;   ;   (prn "load-tile-set: tile.pos" (.-position mesh))))
 
 (defn load-tile-set [db]
   (let [main-scene (:main-scene db)]
@@ -81,57 +52,27 @@
                    (:fn game-cell)
                    main-scene #(tile-model-loaded %1 %2 %3 db i)))))
 
+(defn power-slave-loaded [new-meshes particle-systems skeletons]
+  (prn "power-slave-loaded: new-meshes=" new-meshes)
+  (prn "count-new-meshes=" (count new-meshes)))
 
+(defn load-power-slave-pyr [db]
+  (.ImportMesh js/BABYLON.SceneLoader ""
+               "models/power_slave_pyr/"
+               "power_slave_pyramid_2.glb"
+               (:main-scene db)
+               #(power-slave-loaded %1 %2 %3)))
 
-; (defn gen-img-map-0 [img-set]
-;   ; (loop))
-;   (let [result []]
-;     (doseq [[i img] (map-indexed vector img-set)]
-;       (println "gen-img-map: img=" img)
-;       (conj result))))
-;
-; (defn gen-img-map3 [img-set]
-;   (let [board-size (* base/board-row-cnt base/board-col-cnt)
-;         empty-img-map (vec (repeat board-size nil))]))
-;
-;
-; (defn gen-img-map-4
-;   ([img-set]
-;    (println "gen-img-map path a")
-;    (let [board-size (* base/board-row-cnt base/board-col-cnt)
-;          used-index-vec (vec (range 0 board-size))
-;          unique-img-cnt (/ board-size 2)
-;          empty-img-map (vec (repeat board-size nil))
-;          rnd1 (rand-int board-size)
-;          used-result-1 (assoc used-index-vec rnd1 (nth used-index-vec (dec board-size)))
-;          rnd2 (rand-int (dec board-size))
-;          used-result-2 (assoc used-result-1 rnd2 (nth used-index-vec (- board-size 2)))]
-;      (gen-img-map-4 img-set 1 used-result-2 (assoc empty-img-map rnd1 (img-set rnd1)))))
-;   ([img-set img-index used-index-vec result]
-;    (let [board-size (* base/board-row-cnt base/board-col-cnt)
-;          unique-img-cnt (/ board-size 2)
-;          index (if-not img-index unique-img-cnt img-index)]
-;      (println "gen-img-map path b img-index=" img-index ",used-index-vec=" used-index-vec ",result=" result))))
-;
-; (defn gen-img-map [unique-img-vec]
-;   (let [board-size 16
-;         unique-img-seq (vec (range 0 (/ board-size 2)))
-;         ; used-index-vec (vec (range 0 board-size))
-;         img-map (vec (repeat board-size nil))]
-;     (loop [loop-index (/ board-size 2)
-;            used-index-vec (vec (range 0 board-size))
-;            result img-map]
-;       (if (neg? loop-index)
-;         result
-;         (do
-;           (println "result=" result)
-;           (recur (dec loop-index)
-;             used-index-vec
-;             (do
-;               ; (println "hello")
-;               (let [dbl-loop-idx (* loop-index 2)]
-;                 (assoc result dbl-loop-idx (used-index-vec (rand-int (inc dbl-loop-idx)))
-;                        (+ dbl-loop-idx 1) (used-index-vec (rand-int dbl-loop-idx)))))))))))
+(defn model-loaded [new-meshes particle-systems skeletons]
+  (prn "model-loaded: new-meshes=" new-meshes)
+  (prn "count new-messhes=" (count new-meshes)))
+
+(defn load-model [db path fn]
+  (.ImportMesh js/BABYLON.SceneLoader ""
+               path
+               fn
+               (:main-scene db)
+               #(model-loaded %1 %2 %3)))
 
 ;; convert a numeric keyword into an int e.g. :2 -> 2
 (defn kwd-to-int [kwd]

@@ -62,6 +62,7 @@
 (def features-manager)
 (def dummy)
 (def model-scale-factor 0.01)
+(def game-pad-mgr)
 ; (def model-scale-factor 1.00)
 (def skeleton)
 (def dribble-range)
@@ -85,6 +86,10 @@
   (fn [task]
     (set! (.-diffuseTexture imgMat) (js/BABYLON.Texture. task.texture))))
 
+(defn gamepad-evt-handler [gamepad state]
+  (prn "gamepad-btn-handler: gamepad=" gamepad ", state=" state)
+  (-> gamepad .-onButtonDownObservable (.add (fn [btn state]))))
+
 (defn init []
   (println "now in init-scene")
   ;; following line necessary for mixamo animations.
@@ -103,75 +108,6 @@
   (set! whiteMaterial (js/BABYLON.StandardMaterial. "whiteMaterial" scene))
   (set! (.-diffuseColor whiteMaterial) (js/BABYLON.Color3. 1 1 1))
   (js/BABYLON.Debug.AxesViewer.)
-  ;; load in a mixamo asset
-  ; BABYLON.SceneLoader.Append("./", "duck.gltf", scene, function (scene) {})
-  ;   // do something with the scene
-  ; (.Append js/BABYLON.SceneLoader "models/jasper/" "jasper.babylon" scene (fn [] (println "jasper loaded")))
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_2/" "jasper_2.babylon" scene
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy/" "dummy.babylon" scene)
-  ; (.ImportMesh bjs-l/glTF2FileLoader "" "models/dummy_glb/" "dummy.glb" scene)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/dummy_glb/" "dummy.glb" scene) ;;works
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot/" "ybot.babylon" scene
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.glb" scene)
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_glb/" "ybot.gltf" scene
-  ;; Note: scaling down in blender seems to have no effect when importing into babylon
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/jasper_small/" "jasper_small.babylon" scene)
-  ;; Note: this works, but commented out because we don't need it here anymore
-  ; (.ImportMesh js/BABYLON.SceneLoader "" "models/ybot_boxing/" "ybot_boxing.glb" scene
-  ;              (fn [new-meshes particle-systems skeletons]
-  ;                (println "new-meshes=" new-meshes)
-  ;                (println "count=" (count new-meshes))
-  ;                ; (doall (map #(.-scaling %1) new-meshes))
-  ;                ; (let [result (map #(.-scaling %1) new-meshes)]
-  ;                ;   (println "result=" result))
-  ;                ; (set! dummy (map #(set! (.-scaling %1) (js/BABYLON.Vector3. 0.1 0.1 0.1)) new-meshes))
-  ;                (doall (map #(set! (.-scaling %1) (js/BABYLON.Vector3. model-scale-factor model-scale-factor model-scale-factor)) new-meshes))
-  ;                (set! skeleton (nth skeletons 0))
-  ;                ; (js-debugger)
-  ;                ; (println "available animations=" (.-animations skeleton))
-  ;                (set! (.-animationPropertiesOverride skeleton) (js/BABYLON.AnimationPropertiesOverride.))
-  ;                (let [animationPropertiesOverride (.-animationPropertiesOverride skeleton)]
-  ;                  (set! (.-enableBlending animationPropertiesOverride) true)
-  ;                  (set! (.-blendingSpeed animationPropertiesOverride) 0.05)
-  ;                  ; (set! (.-loopMode animationPropertiesOverride) 1))
-  ;                  (set! (.-loopMode animationPropertiesOverride) 0))
-  ;                ; (set! dribble-range (.getAnimationRange skeleton "dribble"))
-  ;                ; (let [ar (.getAnimationRanges skeleton)]
-  ;                ;   (js-debugger))
-  ;                (println "main_scene: animation ranges=" (.getAnimationRanges skeleton))
-  ;                (println "main_scene: animation groups=" (.-animationGroups scene))
-  ;                ; (.stopAnimation scene skeleton)))
-  ;                ;; comment out the following or specify ".start" to start the animation
-  ;                (-> (nth (.-animationGroups scene) 0) .stop)))
-                 ; (set! defeated-range (.getAnimationRange skeleton "defeated"))
-                 ; (set! idle-range (.getAnimationRange skeleton "idle"))
-                 ; (set! walking-range (.getAnimationRange skeleton "walking"))
-                 ; (println "animation range= from:" (.-from defeated-range) ", to:" (.-to defeated-range))
-                 ; (println "animation range= from:" (.-from walking-range) ", to:" (.-to walking-range))
-                 ; (js-debugger)
-                 ; (.beginAnimation scene skeleton (.-from dribble-range) (.-to dribble-range) true)
-                 ; (.beginAnimation scene skeleton (.-from defeated-range) (.-to defeated-range) false)))
-                 ; (.beginAnimation scene skeleton (.-from 0) (.-to 0) false 2.0)))
-                 ; (.beginAnimation skeleton)))
-                 ; (.beginAnimation scene skeleton (.-from walking-range) (.-to walking-range) true)))
-                 ; (.beginAnimation scene skeleton (.-from idle-range) (.-to idle-range) true)))
-     ;             // ROBOT)
-     ; skeleton.animationPropertiesOverride = new BABYLON.AnimationPropertiesOverride();
-     ; skeleton.animationPropertiesOverride.enableBlending = true;
-     ; skeleton.animationPropertiesOverride.blendingSpeed = 0.05 ;
-     ; skeleton.animationPropertiesOverride.loopMode = 1);
-                 ; (println "dummy=" dummy)
-                 ; (let [result (map #(.-scaling %1) new-meshes)]
-                 ;   (println "result2=" result))
-                 ;(set! dummy (map #(println "mesh=" %1) (seq new-meshes)))
-                 ; (println "dummy=" dummy)
-                 ; (map dummy-fn (seq new-meshes))
-                 ; (set! dummy (reduce + [1 2 3]))
-                 ; (reduce #(println "e=" %1 "e2=" %2) [1 2 3])
-                 ; (println "end of anon, dummy=" dummy)))
-                 ; (loop)))
-  ; (.Append js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" scene (fn [] (println "jasper_small loaded")))
-  ; (.Load js/BABYLON.SceneLoader "models/jasper_small/" "jasper_small.babylon" (fn [] (println "jasper_small loaded")))
   (set! ground (js/BABYLON.MeshBuilder.CreateGround. "ground" (js-obj "width" 20 "height" 20) scene))
   ; (set! (.-material ground) (js/BABYLON.GridMaterial. "mat" scene))
   (set! (.-material ground) (bjs-m/GridMaterial. "mat" scene))
@@ -192,8 +128,6 @@
       (init-part-2))
     (do
       (println "now setting up xr")
-      ; (set! camera (js/BABYLON.FreeCamera. "camera" (js/BABYLON.Vector3. 0 5 -10) scene))
-      ; (set! camera (js/BABYLON.UniversalCamera. "uni-cam" (js/BABYLON.Vector3. 0 5 -10) scene))
       ;; Note: this is not needed as we set camera later in the promise handler
       ;; Note: no, we still need this camera as it's the camera that used prior to clicking on "enter vr"
       ;; Note: rotations set here *are* propagated to the xr camera (upon entering full xr mode)
@@ -201,13 +135,10 @@
       ;; Note: babylonjs is a left-handed system.  This means the pos x-axis is going into the screen not coming out of it.
       ;; hence we do *not* want to rotate by 180 deg. here.
       ; (set! (.-rotation camera) (js/BABYLON.Vector3. 0 js/Math.PI 0))
-      ; (println "camera pos (pre)=" (.-position camera))
-      ;;(set! (.-y (.-position camera)) 3)
-      ; (set! (.-y (.-position camera)) (.-y camera-init-pos))
-      ;;(set! (.-z (.-position camera)) (* -7 base/scale-factor))
-      ; (println "camera pos (post)=" (.-position camera))
-      ; (set! (.-id camera) "main-camera")
-      ; (set! xr (.createDefaultXRExperienceAsync scene))
+      (set! game-pad-mgr (js/BABYLON.GamepadManager. scene))
+      (-> game-pad-mgr .-onGamepadConnectedObservable (.add gamepad-evt-handler))
+      (prn "scene.gamepadManager=" (-> scene .-gamepadManager))
+      ; (js-debugger)
       (-> (.createDefaultXRExperienceAsync scene (js-obj "floorMeshes" (array (.-ground env))))
           (p/then
            (fn [xr-default-exp]
@@ -221,8 +152,8 @@
              ; (.enableFeature features-manager "xr-controller-pointer-selection")
              (println "xr features available=" (.GetAvailableFeatures js/BABYLON.WebXRFeaturesManager))
              (println "xr features acitve=" (-> xr-default-exp (.-baseExperience) (.-featuresManager) (.getEnabledFeatures)))
-             (println "POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
-             (println "POINTERPICK=" js/BABYLON.PointerEventTypes.POINTERPICK)
+             ; (println "POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
+             ; (println "POINTERPICK=" js/BABYLON.PointerEventTypes.POINTERPICK)
              ; (.registerBeforeRender scene cast-ray)
              ; (set! tmp-obj (js/BABYLON.MeshBuilder.CreateBox. "tmp-obj"
              ;                                                  (js-obj "height" 0.25, "width" 0.25, "depth" 0.25)
@@ -255,6 +186,7 @@
                            ; (set! (.-position camera) camera-init-pos)
                            ; (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -5))
                            (set! (.-position camera) (js/BABYLON.Vector3. 0 4 -10))
+                           (set! (-> xr-default-exp .-baseExperience .-camera .-rotation) (js/BABYLON.Vector3. 0 js/Math.PI 0))
                            ; (set! (.-position camera) (js/BABYLON.Vector3. 0 4 10))
                            ; (set! (.-y (.-rotation camera)) js/Math.PI)
                            ; (set! (.-rotation camera) (js/BABYLON.Vector3. 0 js/Math.PI 0))
@@ -269,7 +201,9 @@
   (println "now in init-part-2")
   ;; svale adjustment
   ;; Note: need if not using webxr (browser) extension, comment out if you are.
-  ;vt-x (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
+  ;; Note: do rotations on the pre-xr camera, which will propagate to the xr camera. Doing it here
+  ;; has no effect.
+  ; (set! (.-rotationQuaternion camera) (-> js/BABYLON.Quaternion (.FromEulerAngles 0 (/ js/Math.PI 1) 0)))
   (set! light1 (js/BABYLON.PointLight. "pointLight" (js/BABYLON.Vector3. 0 5 -3) scene))
   (.setEnabled light1 true)
   ; var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), scene);
@@ -339,6 +273,7 @@
       type=" type ",POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
       ; (= type js/BABYLON.PointerEventTypes.POINTERPICK)
     ; (when (re-matches #"panel-\d+" (.-name picked-mesh)))
+    ; (js-debugger)
     (when (re-matches #"rebus-panel-\d+" (.-name picked-mesh))
       (cond
         (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
