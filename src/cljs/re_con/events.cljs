@@ -6,10 +6,8 @@
    [re-con.base :as base]
    [re-con.utils :as utils]
    [re-con.main-scene :as main-scene]
-   ; [re-con.scenes.con-panel-scene :as cp-scene]
    [re-con.rebus-board :as rebus-board]
    [re-con.cell :as cell]
-   ; [re-con.board :as board]
    [re-con.status-board :as status-board]
    [re-con.game-board :as game-board]
    [re-con.game :as game]
@@ -30,11 +28,6 @@
  (fn [db [_ scene]]
    (assoc db :main-scene scene)))
 
-; (re-frame/reg-event-db
-;  :get-main-scene
-;  (fn [db [_ main-scene]]
-;    (assoc db :main-scene main-scene/scene)))
-;;
 ;;> controller/user interaction level
 ;;
 (re-frame/reg-event-db
@@ -49,38 +42,27 @@
 
 
 ;; usage:  (dispatch [:trigger-change true])
-(re-frame/reg-event-db
-  :trigger-change
-  (fn [db [_ new-state]]
-    (println "now in trigger-change, new-state=" new-state)
-    ;; babylon side effect here
-    (if (and new-state (contains? db :selected-mesh))
-      ; (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
-      (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
-      ())
-    (assoc db :trigger-pressed new-state)))
+; (re-frame/reg-event-db
+;   :trigger-change
+;   (fn [db [_ new-state]]
+;     (println "now in trigger-change, new-state=" new-state)
+;     ;; babylon side effect here
+;     (if (and new-state (contains? db :selected-mesh))
+;       (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
+;       ())
+;     (assoc db :trigger-pressed new-state)))
 
 ;; non re-frame func
 (defn mat-change-check [new-state db]
   (if (and new-state (contains? db :selected-mesh))
-      ; (cp-scene/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)
       (rebus-board/change-panel-material (-> (get db :selected-mesh) (.-name)) main-scene/blueMaterial)))
-      ; ()))
-
-; (re-frame/reg-event-db
-;  :toggle-panel-material
-;  (fn [db [_ _]]
-;    ; (cp-scene/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
-;    (rebus-board/toggle-panel-material db (-> (db :selected-mesh) (.-name)))
-;    db))
 
 (re-frame/reg-event-db
- :show-panel-face
+ :show-rebus-panel-face
  (fn [db [_ _]]
    (when (:selected-mesh db)
-     ; (cp-scene/show-panel-face db (-> (db :selected-mesh) (.-name)))
      (prn "events: show-panel-face")
-     (rebus-board/show-panel-face db (-> (db :selected-mesh) (.-name))))
+     (rebus-board/show-rebus-panel-face db (-> (db :selected-mesh) (.-name))))
    db))
 
 ;; TODO : is this still used?
@@ -88,30 +70,9 @@
   :toggle-trigger
   (fn [db _]
     (println "now in toggle-trigger, not of trigger-pressed=" (not (:trigger-pressed db)))
-    ; {:trigger-pressed true}))
     (assoc db :trigger-pressed (not (:trigger-pressed db)))))
-    ; (set! tmp (assoc db :trigger-pressed true))
-    ; tmp))
-
 
 ;; note: main trigger routine
-; (re-frame/reg-event-db
-;  :trigger-handler
-;  (fn [db [_ stateObject]]
-;    (let [board-status (db :board-status)
-;          first-pick (get board-status :first-pick)
-;          second-pick (get board-status :second-pick)]
-;      (cond (or (= first-pick nil) (= second-pick nil))
-;        (if (and (.-pressed stateObject) (not (:trigger-pressed db)))
-;          ; side effect
-;          (cp-scene/toggle-panel-material db (-> (get db :selected-mesh) (.-name)))
-;          ; and fire a cell-picked event
-;          (re-frame/dispatch [:cell-picked (get db :selected-mesh)]))))
-;
-;    (assoc db :trigger-pressed (.-pressed stateObject))))
-
-;; note: main trigger routine
-;;TODO: rename to something like ':panel-trigger-handler'
 (re-frame/reg-event-fx
  ; :trigger-handler
  :rebus-panel-trigger-handler
@@ -121,13 +82,11 @@
          second-pick (get board-status :second-pick)]
     (println ":trigger-handler: .-pressed stateObject=" (.-pressed stateObject) ", selected-mesh=" (db :selected-mesh))
     (merge {:db (assoc db :trigger-pressed (.-pressed stateObject))}
-    ; (merge {:db (assoc db :trigger-pressed true)}
            (when-let [dummy-val
-                      ; (and (or (= first-pick nil) (= second-pick nil)
                       (and
                                      (.-pressed stateObject)
                                      (not (:trigger-pressed db)))]
-             {:dispatch-n (list [:show-panel-face]
+             {:dispatch-n (list [:show-rebus-panel-face]
                                 [:cell-picked (db :selected-mesh)]
                                 ;; and trigger the corresponding game tile to be selected.
                                 [:game-board-trigger-handler
@@ -142,9 +101,7 @@
    ;;non-rf side effect
    (game-board/tile-selected picked-mesh)
    db))
-; (re-frame/reg-event-db
-;  :toggle-trigger
-;  {:trigger-pressed true})
+
 (re-frame/reg-event-db
  :print-db
  (fn [db _]
@@ -157,7 +114,6 @@
  (fn [db [_ mesh mesh-index]]
    (println "events: :mesh-selected event")
    (assoc db :selected-mesh mesh)))
-   ; (assoc (assoc db :selected-mesh mesh) :selected-mesh-index mesh-index)))
 
 (re-frame/reg-event-db
  :mesh-unselected
@@ -167,12 +123,6 @@
 (re-frame/reg-event-db
  :action
  (fn [db _]
-   ;non-rf side effect
-    ; (cp-scene/show-full-rebus db)
-   ; (println "selected-mesh=" (if (contains? db :selected-mesh)
-   ;                             (-> (get db :selected-mesh) .-name)
-   ;                             nil))
-   ; (println "kwd-to-int :5=" (utils/kwd-to-int :5))
    (let [scene main-scene/scene
          skel (.getSkeletonById scene "skeleton0")]
      (prn "skel=" skel)
@@ -181,10 +131,6 @@
      ; (.dispose skel))
    (let [mesh1 (.getMeshByID main-scene/scene "__root__")]
      (prn "mesh1=" mesh1)
-     ; no work
-     ; (set! (.-isVisible mesh1) false))
-     ; work
-     ; (.setEnabled mesh1) false
      (if (.isEnabled mesh1)
        (.setEnabled mesh1 false)
        (.setEnabled mesh1 true)))
@@ -195,19 +141,7 @@
  :action-2
  (fn [db _]
    ;side effect
-   ; (println "rebus-mat 4=" (db :rebus-mat 4))
-   ; (println "board-cells-2=" (db :board-cells-2))
-   ; (cp-scene/show-full-rebus-2 db)
-   ; (println "rebus-mat-4=" (cell/get-rebus-mat db 4))
-   ; (let [dynMat (.getMaterialByName main-scene/scene "status-panel-mat")])
-   ; (cp-scene/update-status-panel "xyz")
-   ; (println "result=" (utils/gen-img-map base/hotel-imgs))
-   ; (println "gen-front-img-map=" (utils/gen-front-img-map base/hotel-imgs))
-   ; scene.debugLayer.show();
    (-> main-scene/scene (.-debugLayer) (.show))
-   ; (let [dynMat (.-material cp-scene/status-panel)]
-   ;   (println "dynMat.texture=" (.-diffuseTexture dynMat))
-   ;   (.drawText (.-diffuseTexture dynMat) "abc" 300 200 "200px green" "white" "blue" true true))
    db))
 
 ;;
@@ -218,7 +152,6 @@
  :load-front-imgs
  (fn [db [_]]
    ; non-rf side effect
-   ; (cp-scene/load-front-imgs db)
    (rebus-board/load-front-imgs db)
    db))
 
@@ -226,7 +159,6 @@
  :load-rebus-imgs
  (fn [db [_]]
    ;non-rf side effect
-   ; (cp-scene/load-rebus-imgs db)
    (rebus-board/load-rebus-imgs db)
    db))
 
@@ -234,7 +166,6 @@
  :front-texture-loaded
  (fn [db [_ task index]]
    ;non-rf side effect
-   ; (cp-scene/front-texture-loaded db task index)
    (rebus-board/front-texture-loaded db task index)
    db))
 
@@ -242,24 +173,14 @@
  :rebus-texture-loaded
  (fn [db [_ task index]]
    ;side effect
-   ; (cp-scene/rebus-texture-loaded db task index)
    (rebus-board/rebus-texture-loaded db task index)
    db))
-
-; (re-frame/reg-event-db
-;  :init-con-panel-scene
-;  (fn [db [_]]
-;    ; side effect
-;    (cp-scene/init-con-panel-scene db)
-;    ; (assoc db :selectedMesh nil)))
-;    db))
 
 (re-frame/reg-event-db
  :init-rebus-board
  (fn [db [_]]
    ; side effect
    (rebus-board/init-rebus-board)
-   ; (assoc db :selectedMesh nil)))
    db))
 
 (re-frame/reg-event-db
@@ -267,10 +188,10 @@
  (fn [db [_ index]]
    (println "now resetting panel " index)
    ;non-rf side effect
-   ; (cp-scene/reset-panel index)
    (rebus-board/reset-panel index)
    (game-board/reset-tile index)
    db))
+
 ;;
 ;;> cell related events
 ;;
@@ -278,7 +199,6 @@
 (re-frame/reg-event-db
  :add-cell
  (fn [db [_ cell]]
-   ; (println "add-cell.fn: entered, db.do-it=" (db/do-it))
    (assoc db :rebus-board-cells (conj (:rebus-board-cells db) cell))))
 
 (re-frame/reg-event-db
@@ -291,11 +211,6 @@
  :init-rebus-cells
  (fn [db [_]]
    ; non-rf side effect
-   ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt base/default-img-map)
-   ;; delegate db population to foreign ns.
-   ; (cell/init-board-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
-   ; (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/hotel-imgs))
-   ; (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt (utils/gen-front-img-map base/ybot-many-anim-imgs))
    (prn "events: init-rebus-cells: rnd-board-seq=" (:rnd-board-seq db))
    (prn "events: init-rebus-cells: randomized coll=" (utils/randomize-coll-by-seq base/ybot-many-anim-imgs (:rnd-board-seq db)))
    (cell/init-rebus-cells db base/board-row-cnt base/board-col-cnt
@@ -306,8 +221,6 @@
  :init-game-cells
  (fn [db [_ tile-set]]
    ;; delegate to outside fn.
-   ; (game-board/init-game-cells db base/ybot-mixamo-models)
-   ; (game-board/init-game-cells db tile-set)
    (prn "event: init-game-cells: rnd tile-set=" (utils/randomize-coll-by-seq tile-set (:rnd-board-seq db)))
    (assoc db :game-cells (utils/randomize-coll-by-seq tile-set (:rnd-board-seq db)))))
 
@@ -340,6 +253,13 @@
    ; non-rf side effect
    (utils/load-model db path fn)
    db))
+
+(re-frame/reg-event-db
+ :load-grass
+ (fn [db [_ path fn]]
+   ; non-rf side effect
+   (game-board/load-grass db path fn)
+   db))
 ;;
 ;;> status board level
 ;;
@@ -348,22 +268,17 @@
  :init-status-board
  (fn [db [_]]
    ; non-rf side effect
-   ; (board/init-board-status db)
-   ; (status-board/init-board-status db)
    (status-board/init-status-board db)))
 
 (re-frame/reg-event-db
  :cell-picked
  (fn [db [_ selected-mesh]]
    ; non-rf side effect
-   ; (board/cell-picked db selected-mesh)
    (status-board/cell-picked db selected-mesh)))
 
 (re-frame/reg-event-db
  :cell-matched
  (fn [db [_ match-index]]
-   ; (assoc (nth (db :board-cells) match-index) :status :matched)
-   ; (assoc-in db [(nth (db :board-cells) match-index) :status] :matched)
    (println "cell-matched: index=" match-index ", status=" (get-in db [:rebus-board-cells match-index :status]))
    (assoc-in db [:rebus-board-cells match-index :status] :matched)))
 
@@ -385,18 +300,9 @@
  (fn [db [_]]
    ;; non-rf delegate
    (assoc db :rnd-board-seq (utils/rnd-board-seq))))
-;;> xr events
-;; intermediary between a babylon.js 'onControllerAddedObservable' event and our
-;; user level handler.  We are basically just using re-frame as a router here so
-;; it's at least hooked into the event pipeline.
-;; defunct
-; (re-frame/reg-event-db
-;   :attach-ray
-;  (fn [db [_ xr-ctrl ray]]
-;    (ctrl-xr/attach-ray-to-laser-pointer xr-ctrl ray)
-;    db))
 
-;
+;;> xr events
+
 (re-frame/reg-event-db
  :setup-xr-ctrl-cbs
  (fn [db [_ xr]]

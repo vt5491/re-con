@@ -19,11 +19,17 @@
 ;    :12 base/smiley-img, :13 base/smiley-img, :14 base/smiley-img, :15 base/smiley-img})
 ;
 ; (def rebus-img-stem "dont_beat_round_the_bush-")
+(def fps-update-thread)
+
+(defn fps-update []
+  (.drawText (-> main-scene/fps-pnl .-material .-diffuseTexture) (int (.getFps main-scene/engine)) 50 50 "60px green" "white" "blue" true true))
 
 (defn render-loop []
   (if base/use-xr
     (ctrl-xr/tick)
     (controller/tick))
+  ; (prn "fps=" (.getFps main-scene/engine))
+  (.drawText (-> main-scene/fps-pnl .-material .-diffuseTexture) (int (.getFps main-scene/engine)) 50 50 "60px green" "white" "blue" true true)
   (.render main-scene/scene))
 
 (defn init []
@@ -41,8 +47,12 @@
   (re-frame/dispatch [:init-game-cells base/ybot-anim-many-tile-set])
   (re-frame/dispatch [:load-tile-set])
   ; (re-frame/dispatch [:load-power-slave-pyr])
-  (re-frame/dispatch [:load-model "models/grass/" "grass.glb"])
-  (main-scene/run-scene render-loop)) ;;vt-x
+  ; (re-frame/dispatch [:load-grass "models/grass/" "flowers.glb"])
+  (re-frame/dispatch [:load-grass "models/grass/" "lawn_pbr_glb.glb"])
+  ; (re-frame/dispatch [:load-grass "models/grass/" "lawn_baked_glb.glb"])
+  (main-scene/run-scene render-loop) ;;vt-x
+  (set! fps-update-thread (js/setInterval fps-update 100)))
+  ; var t=setInterval(runFunction,1000));
 
 ; (defn init []
 ;   (println "game.cljs: now in new init"))

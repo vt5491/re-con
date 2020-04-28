@@ -189,6 +189,21 @@
   ; (init-game-tile 2 1)
   ; (init-game-tile 3 3))
 
+(defn grass-loaded [new-meshes particle-systems skeletons]
+  (prn "grass-loaded: new-meshes=" new-meshes)
+  (prn "count new-messhes=" (count new-meshes))
+  (doall (map #(set! (.-position %1) (js/BABYLON.Vector3. 0 -0.1 0)) new-meshes))
+  (doall (map #(do
+                 (set! (.-id %1) "grass")
+                 (set! (.-name %1) "grass")) new-meshes)))
+
+(defn load-grass [db path fn]
+  (.ImportMesh js/BABYLON.SceneLoader ""
+               path
+               fn
+               (:main-scene db)
+               #(grass-loaded %1 %2 %3)))
+
 ; (assoc db :rebus-board-cells (conj (:board-cells db) cell)))
 
 ; (defn init-game-cells [db model-coll row-cnt col-cnt])

@@ -94,7 +94,8 @@
      (when (= handedness :right)
        (set! right-ctrl-xr xr-controller)))
   (when (-> xr-controller .-inputSource .-gamepad)
-    (-> xr-controller (.-onMotionControllerInitObservable) (.add motion-controller-added)))
+    ; (-> xr-controller (.-onMotionControllerInitObservable) (.add motion-controller-added))
+    (-> xr-controller .-onMotionControllerInitObservable (.add motion-controller-added)))
 
   ; (-> xr-controller .-onMotionControllerInitObservable)
   ; (js-debugger)
