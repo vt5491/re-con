@@ -30,9 +30,11 @@
   ; (doall (map #(set! (.-scaling %1) (.scale (js/BABYLON.Vector3.One) base/mixamo-model-scale-factor)) skeletons))
   (let [main-scene (:main-scene db)
         tile-mesh (-> main-scene (.getMeshByName (str "game-tile-" tile-num)))]
+    ; (doall (map #(set! (.-id %1) (str "game-board-tile-" tile-num)) new-meshes))
+    (doall (map #(set! (.-name %1) (str "skeleton-" tile-num)) skeletons))
+    (doall (map #(set! (.-id %1) (str "skeleton-" tile-num)) skeletons))
     (doall (map #(set! (.-position %1) (.-position tile-mesh)) new-meshes))
     (doall (map #(set! (.-rotation %1) (js/BABYLON.Vector3. (-> %1 .-rotation .-x)
-                                                            ; (+ (-> %1 .-rotation .-y) js/Math.PI)
                                                             0
                                                             (-> %1 .-rotation .-z))) new-meshes)))
   (when-let [mesh0 (get new-meshes 0)]
@@ -67,12 +69,14 @@
   (prn "model-loaded: new-meshes=" new-meshes)
   (prn "count new-messhes=" (count new-meshes)))
 
-(defn load-model [db path fn]
+(defn load-model [db path fn & [cb]]
   (.ImportMesh js/BABYLON.SceneLoader ""
                path
                fn
                (:main-scene db)
-               #(model-loaded %1 %2 %3)))
+               (if cb
+                 #(cb %1 %2 %3)
+                 #(model-loaded %1 %2 %3))))
 
 ;; convert a numeric keyword into an int e.g. :2 -> 2
 (defn kwd-to-int [kwd]

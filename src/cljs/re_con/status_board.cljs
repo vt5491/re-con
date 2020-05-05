@@ -57,11 +57,44 @@
                       first-pick-index (utils/get-panel-index first-pick stem)
                       first-pick-rebus-mat (-> (nth (db :rebus-board-cells) first-pick-index) :rebus-mat)
                       second-pick-index selected-mesh-index
-                      second-pick-rebus-mat (get-in db [:rebus-board-cells second-pick-index :rebus-mat])]
+                      second-pick-rebus-mat (get-in db [:rebus-board-cells second-pick-index :rebus-mat])
+                      first-anim-group-name (:anim-group-name (get (db :game-cells) first-pick-index))
+                      second-anim-group-name (:anim-group-name (get (db :game-cells) second-pick-index))]
                   (re-frame/dispatch [:cell-matched first-pick-index])
                   (re-frame/dispatch [:cell-matched second-pick-index])
                   (rebus-board/show-panel-rebus first-pick-index first-pick-rebus-mat)
-                  (rebus-board/show-panel-rebus second-pick-index second-pick-rebus-mat)))
+                  (rebus-board/show-panel-rebus second-pick-index second-pick-rebus-mat)
+                  ;; stop matched animations
+                  (prn "match: stopping anims, first-pick-index=" first-pick-index)
+                  (prn "match: animationGroup=" (nth (.-animationGroups main-scene/scene) first-pick-index))
+                  ; (prn "match: anim-group-name first-pick=" (:anim-group-name (get (db :game-cells) first-pick-index)))
+                  (prn "match: anim-group-name first-pick=" first-anim-group-name)
+                  ; (prn "match: anim-group-name second-pick=" (:anim-group-name (get (db :game-cells) second-pick-index)))
+                  ; (js-debugger)
+                  ; (.pause (nth (.-animationGroups main-scene/scene) first-pick-index))))
+                  (prn "match: animationGroups=" (js->clj (.-animationGroups main-scene/scene)))
+                  ; (map #(do
+                  ;                (prn "%1=" %1)
+                  ;                (prn "%1.name=" (%1 :Name))
+                  ;                (when (= (%1 :Name) first-anim-group-name)
+                  ;                  (prn "match: now pausing")
+                  ;                  (.pause %1))
+                  ;             (js->clj (.-animationGroups main-scene/scene))))))
+                  (doall (map #(do
+                                 (let [o (js->clj %1)]
+                                   (prn "%1=" o)
+                                   ; (js-debugger)
+                                   (prn "keys o=" (js-keys o))
+                                   ; (prn "%1.name=" (o :o/name))
+                                   (prn "%1.uniqueId=" (.-uniqueId o))
+                                   ; (prn "%1.uniqueId=" (:uniqueId o))
+                                   ; (prn "%1.isPlay=" (o "isPlaying"))
+                                   (prn "%1.name=" (.-name o))
+                                   (when (= (.-name o) first-anim-group-name)
+                                     (prn "match: now pausing")
+                                     (.restart %1)
+                                     (.pause %1))))
+                              (.-animationGroups main-scene/scene)))))
               (do
                 (update-status-panel "non-match")))
             (assoc-in db [:board-status :second-pick] selected-mesh))

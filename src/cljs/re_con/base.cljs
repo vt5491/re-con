@@ -71,12 +71,19 @@
 
 ;; game level tile-sets here
 ;; Note: has to be in the same order as 'ybot-many-anim-imgs'
+;; Note 2: the ":anim-group-name" can be determined by calling (i.e. from a javascript debug console):
+;; (-> main-scene/scene .-animationGroups)
+;; and examing the name field in each animationGroup
+;; For now, we'll just set this manually.  It may seem trivial to do, but some names are pascalCase
+;; and others are snake_case etc.
+;; TODO: figure out a way to get this name at runtime (?)
+
 (def ybot-anim-many-tile-set [
-                              {:path "models/ybot/many_anim/" :fn "ybot_boxing.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_roundhouse_kick.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_golf_putt_victory.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_old_man_idle.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_samba_dancing.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_searching_pockets.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_sitting.glb"}
-                              {:path "models/ybot/many_anim/" :fn "ybot_taunt.glb"}])
+                              {:path "models/ybot/many_anim/" :fn "ybot_boxing.glb" :anim-group-name "boxing"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_roundhouse_kick.glb" :anim-group-name "roundhouse_kick"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_golf_putt_victory.glb" :anim-group-name "golf_putt_victory"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_old_man_idle.glb" :anim-group-name "old_man_idle"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_samba_dancing.glb" :anim-group-name "sambaDancing"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_searching_pockets.glb" :anim-group-name "searchingPockets"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_sitting.glb" :anim-group-name "sitting"}
+                              {:path "models/ybot/many_anim/" :fn "ybot_taunt.glb" :anim-group-name "taunt"}])

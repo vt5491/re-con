@@ -37,6 +37,7 @@
   (main-scene/init) ;;vt-x
   (re-frame/dispatch [:rnd-board-seq])
   ; (re-frame/dispatch [:init-board-cells]) ;;vt-x
+  (re-frame/dispatch [:load-grass "bg_scenes/hampton_court/" "hampton_court_v1.glb"])
   (re-frame/dispatch [:init-rebus-cells]) ;;vt-x
   ; (re-frame/dispatch [:init-board-status]) ;;vt-x
   (re-frame/dispatch [:init-status-board]) ;;vt-x
@@ -48,7 +49,22 @@
   (re-frame/dispatch [:load-tile-set])
   ; (re-frame/dispatch [:load-power-slave-pyr])
   ; (re-frame/dispatch [:load-grass "models/grass/" "flowers.glb"])
-  (re-frame/dispatch [:load-grass "models/grass/" "lawn_pbr_glb.glb"])
+  ; (re-frame/dispatch [:load-grass "models/grass/" "lawn_pbr_glb.glb"])
+  (re-frame/dispatch [:load-grass "bg_scenes/hampton_court/" "hampton_court_v1.glb"])
+  ; (re-frame/dispatch [:load-model "models/cube_wrap/" "cube_wrap.glb"
+  ;                     (fn [nm ps sk]
+  ;                       (let [mat (js/BABYLON.StandardMaterial. "cube_mat" main-scene/scene)
+  ;                             diff-texture (js/BABYLON.Texture. "models/cube_wrap/cube_wrap_baked.png")
+  ;                             color-text (js/BABYLON.Color3. 1 0 0)]
+  ;                         (set! (.-diffuseTexture mat) diff-texture)
+  ;                         (set! (.-uScale diff-texture) 1.0)
+  ;                         (set! (.-vScale diff-texture) 1.0)
+  ;                         ; (js-debugger)
+  ;                         ; (set! (.-diffuseColor mat) (js/BABYLON.Color3. 1 1 0))
+  ;                         (set! (-> (get nm 1) .-material) mat)
+  ;                         (set! (-> (get nm 1) .-position) (js/BABYLON.Vector3. 0 4 0))
+  ;                         (set! (-> (get nm 1) .-rotation) (js/BABYLON.Vector3. (/ js/Math.PI 4.0) 0 0))
+  ;                         (prn "hi from cb, nm[1]=" (get nm 1))))])
   ; (re-frame/dispatch [:load-grass "models/grass/" "lawn_baked_glb.glb"])
   (main-scene/run-scene render-loop) ;;vt-x
   (set! fps-update-thread (js/setInterval fps-update 100)))

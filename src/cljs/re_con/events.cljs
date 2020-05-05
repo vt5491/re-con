@@ -124,16 +124,25 @@
  :action
  (fn [db _]
    (let [scene main-scene/scene
-         skel (.getSkeletonById scene "skeleton0")]
+         skel (.getSkeletonById scene "skeleton-0")]
      (prn "skel=" skel)
+     ; (js-debugger)
      (prn "skel.scene=" (.getScene skel))
-     (set! (.-isVisible skel) false))
+     ; (prn "count skel.animations" (count (-> skel .-animations)))
+     ; (prn "alength skel.animations" (alength (-> skel .-animations)))
+     (doall (map #(.pause %1) (.-animationGroups scene))))
+     ; (set! (.-isVisible skel) false)
+     ; (.stopAnimation scene skel))
+     ; (set! (-> skel .-animationPropertiesOverride .-loopMode) 0))
+     ; (.beginAnimation scene skel 0 0 false)
+     ; (-> (nth (.-animationGroups scene) 4) .stop))
+     ; (.returnToRest skel))
      ; (.dispose skel))
-   (let [mesh1 (.getMeshByID main-scene/scene "__root__")]
-     (prn "mesh1=" mesh1)
-     (if (.isEnabled mesh1)
-       (.setEnabled mesh1 false)
-       (.setEnabled mesh1 true)))
+   ; (let [mesh1 (.getMeshByID main-scene/scene "__root__")]
+   ;   (prn "mesh1=" mesh1)
+   ;   (if (.isEnabled mesh1)
+   ;     (.setEnabled mesh1 false)
+   ;     (.setEnabled mesh1 true)))
 
    db))
 
@@ -249,9 +258,9 @@
 
 (re-frame/reg-event-db
  :load-model
- (fn [db [_ path fn]]
+ (fn [db [_ path fn & [cb]]]
    ; non-rf side effect
-   (utils/load-model db path fn)
+   (utils/load-model db path fn cb)
    db))
 
 (re-frame/reg-event-db

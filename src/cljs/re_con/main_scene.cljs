@@ -4,7 +4,7 @@
   (:require
    [re-frame.core :as re-frame]
     ;; actually don't need to require babylonjs as it's in the js namespace already.
-   ; [babylonjs]
+   [babylonjs :as BABYLON]
    ; [promesa.core :as p :refer-macros [async]]
    [re-con.base :as base]
    [re-con.utils :as utils]
@@ -72,6 +72,7 @@
 (declare cast-ray)
 (declare pointer-handler)
 (declare set-scaling)
+(declare setup-skybox)
 
 (defn mesh-selected [])
 
@@ -105,6 +106,7 @@
   (set! (.-diffuseColor whiteMaterial) (js/BABYLON.Color3. 1 1 1))
   (js/BABYLON.Debug.AxesViewer.)
   (prn "multiview=" (-> scene .getEngine .getCaps .-multiview))
+  (setup-skybox)
   (set! fps-pnl (js/BABYLON.MeshBuilder.CreateBox.
                    "fps-panel"
                    (js-obj "width" 2.50 "height" 2.50 "depth" 0.1)
@@ -221,8 +223,8 @@
   (macros/when-let* [type (.-type pointer-info)
                      ; picked-mesh (if (and (.-pickInfo pointer-info) (-> pointer-info (.-pickInfo) (.-pickedMesh))))
                      picked-mesh (-> pointer-info (.-pickInfo) (.-pickedMesh))]
-      (println "POINTER DOWN, picked-mesh.id=" (.-id picked-mesh) ", picked-mesh=" picked-mesh ",
-      type=" type ",POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
+      ; (println "POINTER DOWN, picked-mesh.id=" (.-id picked-mesh) ", picked-mesh=" picked-mesh ",
+      ; type=" type ",POINTERDOWN=" js/BABYLON.PointerEventTypes.POINTERDOWN)
     (when (re-matches #"rebus-panel-\d+" (.-name picked-mesh))
       (cond
         (= type js/BABYLON.PointerEventTypes.POINTERDOWN)
@@ -249,3 +251,31 @@
 
 (defn set-scaling [mesh, s]
   (set! (.-scaling mesh) (js/BABYLON.Vector3. s s s)))
+
+  ; var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:1000.0}, scene);
+  ; var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+  ; skyboxMaterial.backFaceCulling = false;
+  ; skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+  ; skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+  ; skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+  ; skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+  ; skybox.material = skyboxMaterial);
+(defn setup-skybox []
+  ; (let [skybox (BABYLON/Vector3. 1 1 1)]))
+  (let [skybox (BABYLON/MeshBuilder.CreateBox. "sky-box" (js-obj "size" 1000.0) scene)
+        skybox-mat (BABYLON/StandardMaterial. "sky-box" scene)]
+    (set! (.-backFaceCulling skybox-mat) false)
+    (set! (.-reflectionTexture skybox-mat) (BABYLON/CubeTexture. "textures/skybox/skybox" scene))
+    (set! (-> skybox-mat .-reflectionTexture .-coordinatesMode) (-> BABYLON .-Texture .-SKYBOX_MODE))
+    (set! (-> skybox-mat .-diffuseColor) (BABYLON/Color3. 0 0 0))
+    (set! (-> skybox-mat .-specularColor) (BABYLON/Color3. 0 0 0))
+    (set! (.-material skybox) skybox-mat)))
+; (defn setup-skybox []
+;   (let [skybox (js/BABYLON.MeshBuilder.CreateBox. "sky-box" (js-obj "size" 1000.0) scene)
+;         skybox-mat (js/BABYLON/StandardMaterial. "sky-box" scene)]
+;     (set! (.-backFaceCulling skybox-mat) false)
+;     (set! (.-reflectionTexture skybox-mat) (js/BABYLON.CubeTexture. "textures/skybox/skybox" scene))
+;     (set! (-> skybox-mat .-reflectionTexture .-coordinatesMode) (-> js/BABYLON .-Texture .-SKYBOX_MODE))
+;     (set! (-> skybox-mat .-diffuseColor) (js/BABYLON.Color3 0 0 0))
+;     (set! (-> skybox-mat .-specularColor) (js/BABYLON.Color3 0 0 0))
+;     (set! (.-material skybox) skybox-mat)))
