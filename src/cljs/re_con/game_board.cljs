@@ -77,22 +77,23 @@
                 (when (or (= (.-name %1) "linear_walkway") (re-matches #"^flower_bed_x.*" (.-name %1)))
                      (prn "grass: hi. name=" (.-name %1))
                      (let [mat (js/BABYLON.StandardMaterial. "tile_mat-x" main-scene/scene)
-                           diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
+                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)
+                           diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile_rot.png" main-scene/scene)]
                        (set! (.-diffuseTexture mat) diff-text)
-                       (set! (.-uScale diff-text) 1.0)
-                       (set! (.-vScale diff-text) 8.0)
+                       (set! (.-uScale diff-text) 10.0)
+                       (set! (.-vScale diff-text) 1.0)
                        (set! (-> %1 .-material) mat)))
                 (when (re-matches #"^flower_bed_y.*" (.-name %1))
                      (prn "flower_bed_y: hi. name=" (.-name %1))
                      (let [mat (js/BABYLON.StandardMaterial. "tile_mat-y" main-scene/scene)
-                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile_rot.png" main-scene/scene)
-                           diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
-                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
+                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile_rot.png" main-scene/scene)]
+                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
+                           diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
                        ; (set! (.-uAng (/ js/Math.PI 2.0)))
                        ; (set! (.-uoffset diff-text) 2.0)
                        ; (set! (.-voffset diff-text) 4.0)
-                       ; (set! (.-uScale diff-text) 1.0)
-                       ; (set! (.-vScale diff-text) 1.0)
+                       ; (set! (.-uScale diff-text) 10.0)
+                       (set! (.-vScale diff-text) 10.0)
                        (set! (.-diffuseTexture mat) diff-text)
                        (set! (-> %1 .-material) mat)))
                 ;; daisy leaf
@@ -108,17 +109,18 @@
                   (let [mat (js/BABYLON.StandardMaterial. "daisy_mat" main-scene/scene)
                         diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
                     (set! (.-diffuseTexture mat) diff-text)
-                    (set! (-> %1 .-material) mat)))
-                (when (re-matches #"gameTile.*" (.-name %1))
-                  (prn "found gameTile " (.-name %1))
-                  (let [mat (js/BABYLON.StandardMaterial. "tile_mat" main-scene/scene)
-                        diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
-                    (set! (.-diffuseTexture mat) diff-text)
-                    (set! (.-uScale diff-text) 1.0)
-                    (set! (.-vScale diff-text) 1.0)
-                    ; (set! (.-uoffset diff-text) 10.0)
-                    ; (set! (.-voffset diff-text) 4.0)
                     (set! (-> %1 .-material) mat))))
+                ; (when (re-matches #"gameTile.*" (.-name %1))
+                ;   (prn "found gameTile " (.-name %1))
+                ;   (let [mat (js/BABYLON.StandardMaterial. "tile_mat" main-scene/scene)
+                ;         ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)
+                ;         diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
+                ;     (set! (.-diffuseTexture mat) diff-text)
+                ;     (set! (.-uScale diff-text) 1.0)
+                ;     (set! (.-vScale diff-text) 1.0)
+                ;     ; (set! (.-uoffset diff-text) 10.0)
+                ;     ; (set! (.-voffset diff-text) 4.0)
+                ;     (set! (-> %1 .-material) mat))))
                 ; (when (re-matches #"Daisy.*" (.-name %1))
                 ;   (prn "found daisy")
                 ;   (let [mat (js/BABYLON.StandardMaterial. "daisy_mat" main-scene/scene)
