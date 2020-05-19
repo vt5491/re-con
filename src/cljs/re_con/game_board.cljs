@@ -4,6 +4,7 @@
 
 (ns re-con.game-board
   (:require
+   [babylonjs :as bjs]
    [re-frame.core :as re-frame]
    [re-con.base :as base]
    [re-con.utils :as utils]
@@ -14,6 +15,9 @@
 (def ^:const tile-height 2)
 (def ^:const tile-depth 0.1)
 (def ^:const tile-spacing 0.5)
+
+;; variables
+(def tile-selected-snd)
 
 (defn tile-selected [picked-mesh]
   (let [tile-n (js/parseInt (utils/get-panel-index picked-mesh "game-tile"))
@@ -68,6 +72,17 @@
 
   (prn "exiting init-game-tiles"))
 
+; var music = new BABYLON.Sound("Music", "music.wav", scene, function() {})
+(defn init-snd []
+  (set! tile-selected-snd (bjs/Sound.
+                           "tile-selected"
+                           ; "sounds/104532__skyumori__door-open-01.wav"
+                           "sounds/swoop_fade.ogg"
+                           main-scene/scene)))
+
+(defn play-tile-selected-snd []
+  (.play tile-selected-snd))
+
 (defn grass-loaded [new-meshes particle-systems skeletons]
   (prn "grass-loaded: new-meshes=" new-meshes)
   (prn "count new-messhes=" (count new-meshes))
@@ -86,13 +101,7 @@
                 (when (re-matches #"^flower_bed_y.*" (.-name %1))
                      (prn "flower_bed_y: hi. name=" (.-name %1))
                      (let [mat (js/BABYLON.StandardMaterial. "tile_mat-y" main-scene/scene)
-                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile_rot.png" main-scene/scene)]
-                           ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
                            diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
-                       ; (set! (.-uAng (/ js/Math.PI 2.0)))
-                       ; (set! (.-uoffset diff-text) 2.0)
-                       ; (set! (.-voffset diff-text) 4.0)
-                       ; (set! (.-uScale diff-text) 10.0)
                        (set! (.-vScale diff-text) 10.0)
                        (set! (.-diffuseTexture mat) diff-text)
                        (set! (-> %1 .-material) mat)))
@@ -110,23 +119,6 @@
                         diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
                     (set! (.-diffuseTexture mat) diff-text)
                     (set! (-> %1 .-material) mat))))
-                ; (when (re-matches #"gameTile.*" (.-name %1))
-                ;   (prn "found gameTile " (.-name %1))
-                ;   (let [mat (js/BABYLON.StandardMaterial. "tile_mat" main-scene/scene)
-                ;         ; diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)
-                ;         diff-text (js/BABYLON.Texture. "imgs/hampton_court/walkway_tile.jpg" main-scene/scene)]
-                ;     (set! (.-diffuseTexture mat) diff-text)
-                ;     (set! (.-uScale diff-text) 1.0)
-                ;     (set! (.-vScale diff-text) 1.0)
-                ;     ; (set! (.-uoffset diff-text) 10.0)
-                ;     ; (set! (.-voffset diff-text) 4.0)
-                ;     (set! (-> %1 .-material) mat))))
-                ; (when (re-matches #"Daisy.*" (.-name %1))
-                ;   (prn "found daisy")
-                ;   (let [mat (js/BABYLON.StandardMaterial. "daisy_mat" main-scene/scene)
-                ;         diff-text (js/BABYLON.Texture. "imgs/hampton_court/daisy_head.png" main-scene/scene)]
-                ;     (set! (.-diffuseTexture mat) diff-text)
-                ;     (set! (-> %1 .-material) mat))))
               new-meshes))
   (doall (map #(do
                  (set! (.-id %1) "grass")

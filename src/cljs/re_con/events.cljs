@@ -269,6 +269,13 @@
    ; non-rf side effect
    (game-board/load-grass db path fn)
    db))
+
+(re-frame/reg-event-db
+ :play-tile-selected-snd
+ (fn [db [_]]
+   (game-board/play-tile-selected-snd)
+   db))
+
 ;;
 ;;> status board level
 ;;
@@ -299,6 +306,7 @@
  (fn [db [_]]
    ; non-rf side effect
    (game-board/init-game-tiles)
+   (game-board/init-snd)
    db))
 
 ;;

@@ -244,6 +244,7 @@
           (let [rebus-mesh
                 (-> scene (.getMeshByName (str "rebus-panel-" (utils/get-panel-index picked-mesh "game-tile"))))]
             (prn "rebus-mesh id=" (.-id rebus-mesh))
+            (re-frame/dispatch [:play-tile-selected-snd])
             (re-frame/dispatch [:mesh-selected rebus-mesh])
             (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" true)])
             (re-frame/dispatch [:rebus-panel-trigger-handler (js-obj "pressed" false)])))))))
